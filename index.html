@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit Line on UPI — Full Onboarding Journey (Steps 1–21)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#0f172a;--muted:#64748b;--line:#e6ebf2;--board:#f7f9fc;
+    --co:#3b5bdb;--coDark:#1e3a8a;--bank:#0d9488;--bankDark:#0f766e;--check:#d97706;--ok:#16a34a;--fail:#dc2626;--vega:#b45309;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:#eef1f6;color:var(--ink);font-family:'Inter',system-ui,sans-serif;}
+  .wrap{max-width:1320px;margin:0 auto;padding:20px 20px 40px;}
+  h1{font-size:20px;font-weight:800;margin:0 0 3px;}h1 b{color:var(--co);}
+  .sub{font-size:12.5px;color:var(--muted);margin-bottom:14px;}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .lg{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 10px;}
+  .lg .sw{width:12px;height:12px;border-radius:4px;display:inline-block;}
+  .lg .solid{width:20px;height:0;border-top:2px solid var(--co);}
+  .lg .dot{width:20px;height:0;border-top:2px dashed var(--check);}
+  .lg .box{width:15px;height:11px;border-radius:3px;border:2px dashed var(--co);}
+  .lg .boxb{width:15px;height:11px;border-radius:3px;border:2px dashed var(--bank);}
+  .lg .i{width:15px;height:15px;border-radius:50%;background:var(--co);color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;font-style:italic;}
+  .toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .zbtn{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#334155;font-family:inherit;}
+  .zbtn:hover{border-color:var(--co);}.zbtn.primary{background:var(--co);color:#fff;border-color:var(--co);}
+  .zlabel{font-size:12px;font-weight:700;color:#475569;min-width:46px;text-align:center;}
+  .thint{font-size:11px;color:#94a3b8;margin-left:4px;}
+  .board{background:var(--board);border:1px solid var(--line);border-radius:18px;padding:10px;overflow:auto;max-height:84vh;}
+  .board::-webkit-scrollbar{height:12px;width:12px;}.board::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:8px;}
+  #stage{transform-origin:0 0;}#canvas{position:relative;transform-origin:0 0;}
+  #wires{position:absolute;top:0;left:0;pointer-events:none;}
+  .zone-lbl{position:absolute;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:4px 11px;border-radius:8px;z-index:1;}
+  .zone-lbl.co{background:#eef2ff;color:var(--co);border:1px solid #c7d2fe;}
+  .zone-lbl.bank{background:#effcf9;color:var(--bankDark);border:1px solid #99f6e4;}
+
+  .card{position:absolute;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 3px 10px rgba(15,23,42,.06);cursor:pointer;transition:transform .12s,box-shadow .12s;z-index:2;}
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(15,23,42,.15);}
+  .card.step.co{border-top:4px solid var(--co);}.card.step.bank{border-top:4px solid var(--bank);}
+  .card.check{border:1.5px dashed var(--check);background:#fffdf8;}
+  .card.event{background:#e9fbf6;border:1px solid #99f6e4;}
+  .card.drop{background:#fef2f2;border:1px solid #fecaca;border-left:4px solid var(--fail);}
+  .num{position:absolute;top:-11px;left:-11px;min-width:26px;height:26px;padding:0 6px;border-radius:13px;color:#fff;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,.25);}
+  .card.step.co .num{background:var(--coDark);}.card.step.bank .num{background:var(--bankDark);}
+  .card.check .num{background:var(--check);}.card.event .num{background:#0f766e;}.card.drop .num{background:var(--fail);}
+  .pad{padding:12px 13px 13px;}
+  .owner{font-size:8.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;}
+  .card.step.co .owner{color:var(--co);}.card.step.bank .owner{color:var(--bankDark);}
+  .card.check .owner{color:var(--check);}.card.event .owner{color:#0f766e;}.card.drop .owner{color:var(--fail);}
+  .card h4{margin:4px 0 5px;font-size:12.5px;font-weight:700;line-height:1.22;}
+  .card p{margin:0;font-size:10px;color:var(--muted);line-height:1.4;}
+  .dtag{position:absolute;top:9px;right:10px;font-size:11px;color:var(--check);font-weight:800;}
+  .branch{margin-top:9px;display:flex;flex-direction:column;gap:4px;}
+  .branch span{font-size:9px;font-weight:700;padding:3px 6px;border-radius:6px;}
+  .branch .p{background:#eafaf0;color:#15803d;border:1px solid #bbf7d0;}
+  .branch .m{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+  .branch .f{background:#fdecec;color:#b91c1c;border:1px solid #fecaca;}
+  .foot{display:flex;align-items:center;gap:8px;margin-top:10px;}
+  .view{font-size:9.5px;font-weight:700;display:flex;align-items:center;gap:4px;}
+  .card.step.co .view{color:var(--co);}.card.step.bank .view{color:var(--bankDark);}
+  .card.check .view{color:var(--check);}.card.event .view{color:#0f766e;}.card.drop .view{color:var(--fail);}
+  .ibtn{margin-left:auto;width:22px;height:22px;border-radius:50%;color:#fff;border:none;font-size:12px;font-weight:800;cursor:pointer;font-family:Georgia,serif;font-style:italic;display:flex;align-items:center;justify-content:center;flex:none;}
+  .card.step.co .ibtn{background:var(--co);}.card.step.bank .ibtn{background:var(--bank);}.card.check .ibtn{background:var(--check);}
+  .card.step.npci{border-top:4px solid #7c3aed;}.card.step.npci .num{background:#5b21b6;}.card.step.npci .owner{color:#6d28d9;}.card.step.npci .view{color:#6d28d9;}.card.step.npci .ibtn{background:#7c3aed;}
+
+  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .overlay.open{display:flex;}
+  .modal{background:#fff;border-radius:16px;max-height:92vh;overflow:auto;position:relative;box-shadow:0 24px 60px rgba(0,0,0,.4);}
+  .phone-modal{width:358px;}
+  .modal .x{position:absolute;top:10px;right:12px;border:none;background:#f1f5f9;width:30px;height:30px;border-radius:50%;font-size:17px;cursor:pointer;color:#475569;z-index:6;}
+  .mtitle{padding:15px 44px 0 20px;font-size:14px;font-weight:800;}
+  .msub{padding:2px 20px 12px;font-size:11.5px;color:var(--muted);}
+  .tabs{display:flex;gap:7px;padding:0 20px 12px;flex-wrap:wrap;justify-content:center;}
+  .tab{border:1px solid var(--line);background:#f1f5f9;border-radius:20px;padding:6px 12px;font-size:10.5px;font-weight:700;cursor:pointer;color:#475569;}
+  .tab.on{background:var(--co);color:#fff;border-color:var(--co);}
+
+  .phone{width:300px;height:600px;background:#fff;border:11px solid #0b1020;border-radius:40px;position:relative;overflow:hidden;margin:0 auto 8px;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:22px;background:#0b1020;border-radius:0 0 14px 14px;z-index:5;}
+  .scr{position:absolute;inset:0;overflow-y:auto;font-size:12px;}
+  .stat{display:flex;justify-content:space-between;align-items:center;padding:7px 16px 3px;font-size:10.5px;font-weight:700;color:#0b1020;}
+  .ph-hd{display:flex;align-items:center;justify-content:center;gap:7px;padding:6px 14px;position:relative;}
+  .ph-hd .lg2{font-weight:800;font-size:13px;color:var(--co);}.ph-hd.bk-hd .lg2{color:#12385f;}
+  .ph-hd .help{position:absolute;right:14px;color:var(--co);font-size:11px;font-weight:600;}
+  .ph-hd .bk{position:absolute;left:14px;color:#334155;font-size:15px;}
+  .aad{position:absolute;right:14px;font-size:8px;font-weight:800;color:#e05a00;border:1px solid #fdba74;border-radius:4px;padding:2px 4px;letter-spacing:.5px;}
+  .odot{color:#e08a2b;}
+  .amt{font-size:38px;font-weight:800;color:var(--co);text-align:center;letter-spacing:-1px;}
+  .amt-l{text-align:center;font-size:14px;color:#334155;margin-top:14px;}
+  .illus{height:120px;margin:8px 18px;border-radius:14px;background:linear-gradient(135deg,#dbe4ff,#eef2ff);display:flex;align-items:center;justify-content:center;font-size:40px;}
+  .sheet{margin:10px 0 0;border-radius:20px 20px 0 0;background:#fff;padding:16px;}
+  .sheet h3{margin:0 0 8px;font-size:15px;font-weight:800;}
+  .sheet .h-sub{font-size:11px;color:var(--muted);margin-bottom:12px;}
+  .field{border:1px solid #d5dced;border-radius:12px;padding:12px 13px;font-size:12px;color:#94a3b8;margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;}
+  .field.filled{color:#0f172a;font-weight:700;}
+  .field b{color:var(--co);font-size:10px;}.field .req{color:#dc2626;font-size:10px;font-weight:700;}.field .opt{color:#94a3b8;font-size:10px;font-weight:600;}
+  .uline{border:0;border-bottom:2px solid #cbd5e1;padding:10px 2px;font-size:13px;color:#94a3b8;margin-bottom:8px;}
+  .chk{display:flex;gap:9px;align-items:flex-start;font-size:10.5px;color:#475569;margin-bottom:9px;line-height:1.4;}
+  .chk .b{flex:none;width:17px;height:17px;border-radius:5px;background:var(--co);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:800;}
+  .chk a,.chk b{color:var(--co);font-weight:700;text-decoration:none;}
+  .info{background:#fdf6e3;border-radius:10px;padding:9px 11px;font-size:10.5px;color:#92680a;margin-bottom:12px;line-height:1.4;}
+  .cta{background:var(--co);color:#fff;text-align:center;padding:14px;border-radius:14px;font-weight:800;font-size:13px;margin-top:6px;}
+  .cta.bank{background:#4b5563;}.cta.ghost{background:#fff;color:var(--co);font-weight:700;margin-top:8px;border:1px solid #dbe4ff;}.cta.blue{background:#2f8fe0;}
+  .credit{text-align:center;font-size:10px;color:#94a3b8;padding:12px 0 16px;}.credit b{color:#e08a2b;}
+  .bar{height:7px;border-radius:6px;background:#e5e9f2;margin:14px 40px;overflow:hidden;}.bar i{display:block;height:100%;background:var(--ok);border-radius:6px;}
+  .center-txt{text-align:center;padding:0 26px;}.center-txt h3{font-size:16px;font-weight:800;margin:16px 0 6px;}.center-txt p{font-size:11.5px;color:var(--muted);line-height:1.45;margin:0;}
+  .ribbon{background:#fde68a;color:#92400e;font-size:10px;font-weight:800;letter-spacing:1px;padding:5px 16px;border-radius:6px;display:inline-block;margin:12px auto 0;}
+  .ribbon.g{background:#bbf7d0;color:#15803d;}
+  .hero{margin:12px 16px;padding:16px;border-radius:16px;background:linear-gradient(135deg,#3b5bdb,#1e3a8a);color:#fff;}
+  .hero .hl{font-size:11px;opacity:.85;}.hero .hv{font-size:30px;font-weight:800;margin-top:2px;}.hero .hn{font-size:10px;opacity:.8;margin-top:4px;}
+  .tile{background:#fff;border:1px solid #eef1f6;border-radius:14px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,.05);}
+  .tile.hl2{outline:3px solid var(--co);outline-offset:2px;}
+  .grid4{display:flex;justify-content:space-between;gap:6px;}.grid4 div{flex:1;text-align:center;font-size:9px;color:#475569;font-weight:600;}.grid4 .ic{font-size:20px;}
+  .lender{display:flex;align-items:center;gap:11px;border:1px solid #e6ebf2;border-radius:13px;padding:11px;margin-bottom:10px;}
+  .lender .logo{width:32px;height:32px;border-radius:9px;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .lender .nm{font-size:12px;font-weight:700;}.lender .lim{font-size:10px;color:var(--muted);}
+  .lender .radio{margin-left:auto;width:18px;height:18px;border-radius:50%;border:2px solid var(--co);}
+  .lender.sel .radio{background:var(--co);box-shadow:inset 0 0 0 3px #fff;}
+  .cam{height:220px;margin:10px 16px;border-radius:16px;background:#e9edf5;display:flex;align-items:center;justify-content:center;font-size:56px;position:relative;}
+  .cam .lens{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:11px;color:#334155;}
+  .avatar{width:120px;height:120px;border-radius:50%;background:#e9edf5;display:flex;align-items:center;justify-content:center;font-size:44px;filter:blur(1px);margin:40px auto 0;}
+  .otp{display:flex;justify-content:center;gap:8px;margin:16px 0;}.otp span{width:26px;border-bottom:2px solid #94a3b8;height:26px;}
+  .addr{background:#f1f5f9;border-radius:12px;padding:11px;font-size:11px;color:#334155;line-height:1.5;margin-bottom:12px;}
+  .pill-ok{font-size:44px;text-align:center;padding-top:34px;}
+  .numlist .li{display:flex;gap:11px;align-items:flex-start;margin-bottom:13px;font-size:12px;color:#334155;line-height:1.35;}
+  .numlist .n{flex:none;width:24px;height:24px;border-radius:50%;background:#eef2ff;color:#334155;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+  .sheetpop{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -4px 14px rgba(0,0,0,.08);padding:22px;text-align:center;}
+  .sms{padding:44px 18px 0;}.smsbox{background:#f1f5f9;border-radius:16px;padding:14px;}.smsbox .from{font-size:11px;font-weight:800;color:#334155;}.smsbox .body{font-size:12px;color:#475569;margin-top:6px;line-height:1.55;}
+  .carou{padding:2px 14px 16px;}
+  .cnav{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:2px;}
+  .cnav button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#f1f5f9;font-size:16px;cursor:pointer;color:#334155;}
+  .cdots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#cbd5e1;margin:0 3px;}.cdots span.on{background:var(--bank);}
+  .ccap{margin-top:10px;background:#f7f9fc;border:1px solid var(--line);border-radius:12px;padding:11px;}
+  .ccode{font-size:12px;font-weight:800;}.croute{font-size:11px;color:var(--bankDark);font-weight:700;margin-top:3px;}
+  .cnote{font-size:10px;font-weight:700;margin-top:7px;padding:3px 7px;border-radius:6px;display:inline-block;background:#eafaf0;color:#15803d;}
+  .ccap code{display:block;background:#0f172a;color:#e2e8f0;border-radius:8px;padding:8px 10px;margin-top:8px;font-family:ui-monospace,monospace;font-size:9.5px;white-space:pre-wrap;line-height:1.5;}
+  .api{padding:8px 22px 22px;max-width:460px;}.api .row{margin-bottom:13px;}
+  .api label{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);}
+  .api .val{margin-top:4px;font-size:12.5px;line-height:1.5;color:#1e293b;}.api .route{font-weight:700;color:var(--coDark);}
+  .api code{display:block;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:11px 13px;margin-top:5px;font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.5;white-space:pre-wrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Credit Line Onboarding Journey</h1>
+  <div class="legend">
+    <span class="lg"><span class="sw" style="background:var(--co)"></span>Co-brand screen</span>
+    <span class="lg"><span class="sw" style="background:var(--bank)"></span>Bank screen</span>
+    <span class="lg"><span class="sw" style="background:#fffdf8;border:1.5px dashed var(--check)"></span>Backend check</span>
+    <span class="lg"><span class="sw" style="background:#e9fbf6;border:1px solid #99f6e4"></span>Event / SMS</span>
+    <span class="lg"><span class="sw" style="background:#fef2f2;border:1px solid #fecaca"></span>Reject / drop-off</span>
+    <span class="lg"><span class="solid"></span>Move forward</span>
+    <span class="lg"><span class="dot"></span>Check / branch</span>
+    <span class="lg"><span class="box"></span>Co-brand owned</span>
+    <span class="lg"><span class="boxb"></span>Bank owned</span>
+    <span class="lg"><span class="i">i</span>API detail</span>
+  </div>
+  <div class="toolbar">
+    <button class="zbtn" onclick="zoomBy(-0.1)">−</button><span class="zlabel" id="zlabel">100%</span>
+    <button class="zbtn" onclick="zoomBy(0.1)">+</button><button class="zbtn" onclick="zoomReset()">100%</button>
+    <button class="zbtn primary" onclick="zoomFit()">Fit all</button>
+    <span class="thint">Ctrl/⌘ + scroll to zoom · drag scrollbars to pan</span>
+  </div>
+  <div class="board" id="board"><div id="stage"><div id="canvas"><svg id="wires"></svg></div></div></div>
+</div>
+
+<div class="overlay" id="scrOv"><div class="modal phone-modal">
+  <button class="x" onclick="closeAll()">×</button>
+  <div class="mtitle" id="scrTitle"></div><div class="msub" id="scrSub"></div>
+  <div class="tabs" id="scrTabs"></div><div id="scrBody"></div>
+</div></div>
+<div class="overlay" id="apiOv"><div class="modal">
+  <button class="x" onclick="closeAll()">×</button>
+  <div class="mtitle">API call</div><div class="api" id="apiBody"></div>
+</div></div>
+
+<script>
+const ROW={A2:80,A1:250,L:470,M:470,B1:720,B2:900,C1:560,C2:880,C3:1010,TOP:210,TU:70,TD:360,TREJ:45,BREJ:920};
+/* ---------- NODES (lane + off) ---------- */
+const LANE=[
+ {id:'s1',w:210,gap:0,side:'co',num:1,owner:'Co-brand',title:'App home · entry',sub:'Open co-brand app; tap Credit Line (CLOU).',mockup:'home'},
+ {id:'s2',w:210,gap:60,side:'co',num:2,owner:'Co-brand',title:'Enter details',sub:'PAN + Email (req), DOB + Name (opt), T&C.',mockup:'enter',
+   api:{trig:"On 'Continue'",route:'Co-brand app → Co-brand backend',req:'{ pan, email, mobile, dob?, name? }',resp:"{ applicationId, status:'accepted' }"}},
+ {id:'s6',w:210,gap:740,side:'co',num:6,owner:'Co-brand',title:'Offer displayed',sub:'Pre-qualified limit shown.',mockup:'offer',
+   api:{trig:'On eligibility',route:'Vegapay/Bank → Co-brand',req:'{ applicationId }',resp:'{ sanctionLimit:40000, offerId }'}},
+ {id:'s7',w:210,gap:60,side:'co',num:7,owner:'Co-brand',title:'Multiple-lenders',sub:'Customer selects the Bank.',mockup:'lenders',
+   api:{trig:'On load',route:'Co-brand backend',req:'{ applicationId }',resp:'{ lenders:[...] }'}},
+ {id:'s8',w:210,gap:60,side:'co',num:8,owner:'Co-brand · Bank as lender',title:'Selfie KYC + bureau consent',sub:'Selfie + consent for bureau pull.',mockup:'selfie',
+   api:{trig:"On 'Agree & Proceed for KYC'",route:'Co-brand → KYC provider; consent recorded',req:'{ selfie, bureauConsent:true }',resp:"{ kyc:'captured', consentId }"}},
+ {id:'s9',w:185,gap:180,side:'bank',num:9,owner:'Bank',title:'PAN + Name confirm',sub:'Prefilled — consent only.',mockup:'panConfirm',
+   api:{trig:"On 'Confirm'",route:'Bank app → Bank backend',req:'{ pan, name, consents }',resp:'{ confirmed:true }'}},
+ {id:'s10',w:185,gap:60,side:'bank',num:10,owner:'Bank',title:'Enter Aadhaar / VID',sub:'Bank eKYC + UIDAI consent.',mockup:'aadhaarEntry',
+   api:{trig:"On 'Perform KYC'",route:'Bank → UIDAI (KUA)',req:'{ aadhaarOrVid, ekycConsent:true }',resp:'{ otpSent:true, txnId }'}},
+ {id:'s11',w:185,gap:60,side:'bank',num:11,owner:'Bank',title:'Enter your OTP',sub:'6-digit Aadhaar OTP.',mockup:'aadhaarOtp',
+   api:{trig:"On 'Verify'",route:'Bank → UIDAI',req:'{ txnId, otp }',resp:'{ authenticated:true }'}},
+ {id:'s12',w:200,gap:660,side:'bank',num:12,owner:'Bank',title:'Additional details + address',sub:'Extra KYC + editable comm. address.',screens:[['a','Additional details','addl'],['b','Edit address (PIN)','addrEdit']],
+   api:{trig:"On 'Continue'/'Save'",route:'Bank app → Vegapay (Update Data API)',req:'{ mother, marital, occupation, income, commAddress }',resp:'{ saved:true }'}},
+ {id:'s13',w:210,gap:60,side:'bank',num:13,owner:'Bank',title:'Consent & Declaration',sub:'Indian resident, not PeP, FATCA, personal use.',mockup:'consentPopup',
+   api:{trig:"On 'Agree'",route:'Bank app → Bank backend',req:'{ indianResident, notPeP, fatca, personalUse }',resp:'{ declarationsRecorded:true }'}},
+ {id:'s14',w:210,gap:560,side:'bank',num:14,owner:'Bank',title:"Bank's Sanction Offer",sub:'Sanctioned limit; customer accepts.',mockup:'sanctionOffer',
+   api:{trig:'On accept',route:'Vegapay/Bank → Co-brand',req:'{ applicationId }',resp:'{ sanctionLimit:40000, accept:true }'}},
+ {id:'s15',w:210,gap:180,side:'co',num:15,owner:'Co-brand',title:'e-Mandate · add bank a/c',sub:'UPI Autopay via TSP gateway; pick bank.',mockup:'bankGrid',
+   api:{trig:'On enter mandate',route:'Co-brand → TSP gateway → NPCI bank directory',req:'{ }',resp:'{ banks:[...] }'}},
+ {id:'s16',w:210,gap:60,side:'co',num:16,owner:'Co-brand',title:'Account no + IFSC',sub:'Enter a/c + IFSC → Setup UPI Autopay.',mockup:'accountEntry',
+   api:{trig:"On 'Setup UPI Autopay'",route:'Co-brand → TSP gateway + penny-drop',req:'{ bank, accountNumber, ifsc }',resp:'{ accepted, verifyRef }'}},
+ {id:'s17',w:210,gap:60,side:'co',num:17,owner:'Co-brand',title:'₹1 Autopay payment',sub:'₹1 UPI Autopay registration (processing).',mockup:'rupee1',
+   api:{trig:'On registration',route:'Co-brand → TSP gateway → NPCI UPI Autopay',req:'{ mandate, amount:1 }',resp:'{ registrationInitiated:true }'}},
+ {id:'s18',w:210,gap:60,side:'co',num:18,owner:'Co-brand · NPCI',title:'Max Autopay consent',sub:'Approve mandate cap up to ₹15,000.',mockup:'maxAutopay',
+   api:{trig:"On 'Setup Automatic'",route:'Co-brand → NPCI UPI Autopay',req:'{ maxAmount:15000, frequency:"monthly" }',resp:'{ mandateId, status:"active" }'}},
+ {id:'s19',w:210,gap:60,side:'co',num:19,owner:'Co-brand · NPCI',title:'Mandate setup complete',sub:'"Automatic Payment Setup Successful".',mockup:'autopaySuccess',
+   api:{trig:'On mandate registered',route:'NPCI UPI Autopay → Co-brand',req:'{ mandateId }',resp:'{ status:"active", returnToBank:true }'}},
+ {id:'s20',w:210,gap:180,side:'bank',num:20,owner:'Bank',title:'Limit review · KFS · agreement',sub:'Review limit, KFS; accept agreement (clickwrap).',mockup:'reviewLine',
+   api:{trig:"On 'Agree & Proceed'",route:'Bank/Vegapay → records acceptance',req:'{ applicationId, kfsAck:true, agreementAccepted:true }',resp:'{ accepted:true }'}},
+ {id:'s20a',w:210,gap:60,side:'bank',num:'20A',owner:'Bank',title:'Line issued (dummy)',sub:'Holding screen — account is NOT created yet; created after VKYC (21D).',mockup:'lineIssued',
+   api:{trig:'Display only',route:'Bank → Co-brand UI',req:'{ }',resp:'{ status:"issued(pending VKYC)" }'}},
+ {id:'s21',w:220,gap:90,side:'bank',num:21,owner:'Bank · IDfy',title:'VKYC — Start Now',sub:'Video KYC within 72 hrs of eKYC. Backend (agent → auditor → checks → account) runs below.',mockup:'vkycStart',
+   api:{trig:"On 'Proceed'",route:'Bank → VKYC provider (IDfy)',req:'{ applicationId }',resp:'{ vkycSession, slot }'}},
+ {id:'s22',w:210,gap:1660,side:'co',num:22,owner:'Co-brand',title:'Link your credit line',sub:'Customer links the newly-created credit line to UPI.',mockup:'linkLine',
+   api:{trig:"On 'Link'",route:'Co-brand → NPCI / issuer switch (M2P)',req:'{ accountId }',resp:'{ upiHandle, linked:true }'}},
+ {id:'s23',w:210,gap:70,side:'npci',num:23,owner:'NPCI',title:'Set up Credit Line PIN',sub:'NPCI Alternate Rails: first 6 digits of Aadhaar → Aadhaar OTP → Bank OTP.',
+   passTxt:'PIN set → success',failTxt:'PIN setup failed → SMS to customer',screens:[['during','PIN setup','pinSetup'],['fail','If failed','pinSetupFail']],
+   api:{trig:"On 'Set PIN'",route:'Co-brand → NPCI (alternate rails) / M2P switch',req:'{ aadhaarFirst6, aadhaarOtp, bankOtp }',resp:'{ pinSet:true } or { pinSet:false → SMS }'}},
+ {id:'s24',w:210,gap:70,side:'co',num:24,owner:'Co-brand',title:'PIN setup successful',sub:'Credit line activated on UPI; success message sent to customer.',mockup:'pinSuccess',
+   api:{trig:'On PIN set',route:'Co-brand → Vegapay (activate) ; Gupshup SMS',req:'{ accountId }',resp:'{ active:true, smsSent:true }'}}
+];
+const OFF=[
+ {id:'c3',attach:'s2',dx:250,row:'B1',w:210,h:130,kind:'check',side:'co',num:3,owner:'Co-brand backend',title:'Internal checks',sub:'Blocklist / basic eligibility.',mockup:'verify',
+   api:{trig:'After submit',route:'Co-brand backend — internal',req:'{ pan, mobile }',resp:"{ internalCheck:'pass'|'fail' }"}},
+ {id:'c4',attach:'s2',dx:470,row:'A1',w:210,h:150,kind:'check',side:'co',num:4,owner:'Co-brand backend',title:'Internal limit check',sub:'Computes & shows eligible limit.',
+   passTxt:'Pass → limit shown',failTxt:'Fail → rejection',screens:[['during','While checking','verify'],['pass','If accepted','limitPass'],['fail','If rejected','limitFail']],
+   api:{trig:'After internal checks',route:'Co-brand backend — limit engine',req:'{ pan, dob }',resp:'{ eligible:true, limit:40000 }'}},
+ {id:'c5',attach:'s2',dx:690,row:'B1',w:210,h:150,kind:'check',side:'co',num:5,owner:'Vegapay',title:'Program dedupe',sub:'Existing CLOU line before offer.',
+   passTxt:'Pass → limit shown (6)',failTxt:'Fail → line exists',screens:[['during','While checking','verify'],['fail','If exists','dedupeFail']],
+   api:{trig:'Pre-offer',route:'Co-brand → Vegapay API',req:'{ pan, mobile }',resp:'{ existingLine:false }'}},
+ {id:'c8',attach:'s8',dx:0,row:'B1',w:210,h:130,kind:'check',side:'co',num:'8B',owner:'Co-brand · KYC',title:'Uploading selfie',sub:'Selfie uploaded to complete KYC.',mockup:'upload',
+   api:{trig:'After selfie',route:'Co-brand → KYC provider',req:'{ selfieImage }',resp:'{ uploaded:true }'}},
+ {id:'c9b',attach:'s9',dx:0,row:'B1',w:185,h:130,kind:'check',side:'bank',num:'9B',owner:'Bank backend · NSDL',title:'PAN status + Name match',sub:'Before Aadhaar KYC.',
+   passTxt:'Accept → Aadhaar',failTxt:'Reject → stop',screens:[['during','While checking','verify'],['pass','If accepted','panPass'],['fail','If rejected','panFail']],
+   api:{trig:'After PAN confirm',route:'Bank backend → NSDL',req:'POST /nsdl/pan/verify { pan, name }',resp:"{ panStatus:'valid', nameMatch:true }"}},
+ {id:'otpSent',attach:'s11',dx:0,row:'B1',w:185,h:88,kind:'event',side:'bank',num:'⤓',owner:'Bank · SMS',title:'OTP sent to customer',sub:'6-digit OTP via SMS.',mockup:'otpSms'},
+ {id:'verifyA',attach:'s11',dx:250,row:'B1',w:200,h:130,kind:'check',side:'bank',num:'11B',owner:'Bank backend',title:'Verifying Aadhaar',sub:'Runs checks a–c (no rejection). Swipe.',
+   carousel:[
+    {code:'11B-a',name:'UIDAI validation & fetch',route:'Bank → UIDAI (KUA)',note:'No rejection',mock:'procFetch',req:'POST /uidai/ekyc/fetch { txnId, otp }',resp:'→ { name,dob,gender,address,pin,ekycXml }'},
+    {code:'11B-b',name:'Aadhaar Vault (tokenise)',route:'Bank → M2P',note:'No rejection',mock:'procVault',req:'POST /vault/tokenize { aadhaarNumber }',resp:'→ { aadhaarRefToken }'},
+    {code:'11B-c',name:'XML → PDF, store DMS',route:'Bank backend → DMS (Ospyn)',note:'No rejection',mock:'procDms',req:'POST /dms/documents { ekycXml→pdf }',resp:'→ { docId, stored:true }'}]},
+ {id:'ageChk',attach:'s11',dx:205,row:'B2',w:180,h:150,kind:'check',side:'bank',num:'11B',owner:'Bank · Vegapay',title:'Age check (≥18?)',sub:'Reject only — no approval screen.',
+   passTxt:'≥18 → continue',failTxt:'<18 → terminate',mockup:'ageFail',
+   api:{trig:'During Verifying Aadhaar',route:'Bank → Vegapay (age)',req:'{ dob }',resp:'{ ageEligible } ; <18 → REJECT'}},
+ {id:'linkChk',attach:'s11',dx:425,row:'B2',w:180,h:150,kind:'check',side:'bank',num:'11B',owner:'Bank · NSDL',title:'PAN–Aadhaar mismatch',sub:'Reject only — no approval screen.',
+   passTxt:'Matched → continue',failTxt:'Mismatch → terminate',mockup:'linkFail',
+   api:{trig:'After age check',route:'Bank → NSDL',req:'POST /nsdl/pan-aadhaar/link {...}',resp:'{ linked } ; mismatch → REJECT'}},
+ {id:'c12',attach:'s12',dx:0,row:'B1',w:200,h:130,kind:'check',side:'bank',num:'12B',owner:'Bank backend',title:'PIN code check',sub:'Serviceability after address saved.',
+   passTxt:'Serviceable → next',failTxt:'Not serviceable → reject + SMS',screens:[['during','While checking','pinVerify'],['fail','If not serviceable','pinFail'],['sms','Rejection SMS','pinRejectSms']],
+   api:{trig:'After address',route:'Bank backend → serviceability',req:'{ pincode }',resp:'{ serviceable:true→proceed / false→reject+SMS }'}},
+ {id:'bureauSms',attach:'s13',dx:-205,row:'A1',w:200,h:86,kind:'event',side:'bank',num:'⤓',owner:'Bank · SMS',title:'Bureau pull SMS',sub:'Bureau-fetch SMS to customer.',mockup:'bureauSmsScr'},
+ {id:'bre',attach:'s13',dx:250,row:'A1',w:210,h:150,kind:'check',decision:true,side:'bank',num:'13B',owner:'Bank → Vegapay',title:"Bank's BRE",sub:'Post-consent: bureau hard pull + score-card + risk policy.',
+   passTxt:'Eligible → sanction',failTxt:'Non-eligible → terminate + SMS/email',screens:[['during','While checking','bureauVerify'],['fail','If rejected','breReject']],
+   api:{trig:'Post-consent',route:'Bank → Experian/CIBIL (hard pull) → Vegapay runs policy',req:'GET /bureau/report { pan, consent }\nPOST /bre/evaluate { report, scorecard, riskPolicy }',resp:'{ eligible:true, limit:40000 } / { eligible:false }'}},
+ {id:'reject',attach:'s13',dx:300,row:'A2',w:250,h:112,kind:'drop',side:'bank',num:'✕',owner:'Termination',title:'Terminate · rejection',sub:'Rejection SMS & email; UI message.',mockup:'breReject'},
+ {id:'acctChk',attach:'s16',dx:0,row:'A1',w:200,h:150,kind:'check',side:'co',num:'16B',owner:'Co-brand backend',title:'Verify account details',sub:'Penny-drop + name match.',
+   passTxt:'Verified → ₹1 setup',failTxt:'Name mismatch → re-add',screens:[['during','While checking','acctVerify'],['fail','If mismatch','acctFail']],
+   api:{trig:'After a/c added',route:'Co-brand → Cashfree/Razorpay (penny-drop)',req:'{ accountNumber, ifsc }',resp:'{ nameMatch:true|false }'}},
+ {id:'agent',attach:'s21',dx:0,row:'B1',w:210,h:130,kind:'check',side:'bank',num:'21A',owner:'Bank · IDfy (agent)',title:'VKYC (Agent Process)',sub:'Live video call — face, PAN, liveness, signature.',
+   passTxt:'Approve → Auditor',midTxt:'Soft reject → restart',failTxt:'Hard reject → terminate',mockup:'agentCall',
+   api:{trig:'During call',route:'Bank → IDfy agent',req:'{ vkycSession }',resp:"{ decision:'approve'|'soft_reject'|'hard_reject' }"}},
+ {id:'auditor',attach:'s21',dx:280,row:'TOP',w:210,h:150,kind:'check',decision:true,side:'bank',num:'21B',owner:'Bank (auditor)',title:'Approved by Auditor?',sub:'Maker-checker review of the recording.',
+   passTxt:'Approve → parallel checks',failTxt:'Reject → terminate',screens:[['during','Auditor review','auditorReview'],['fail','If rejected','auditorRejectScr']],
+   api:{trig:'After agent approves',route:'Bank auditor / VKYC platform',req:'{ vkycRecording }',resp:'{ auditorDecision: approved|rejected }'}},
+ {id:'dedupe',attach:'s21',dx:1240,row:'TOP',w:210,h:130,kind:'check',side:'bank',num:'21D',owner:'Vegapay',title:'Dedupe check',sub:'Vegapay dedupe (PAN+Mobile) before account creation.',
+   passTxt:'Unique → account creation',failTxt:'Duplicate → review',screens:[['during','While checking','dedupeRun'],['fail','If duplicate','dedupeFailScr']],
+   api:{trig:'After parallel checks',route:'Bank → Vegapay (dedupe)',req:'{ pan, mobile }',resp:'{ duplicate:false }'}},
+ {id:'acctCreate',attach:'s21',dx:1520,row:'TOP',w:210,h:130,kind:'check',side:'bank',num:'21E',owner:'Vegapay',title:'Customer + Account creation',sub:'Vegapay creates the customer & credit-line account — the account is actually created HERE (not at 20A).',mockup:'acctCreateScr',
+   api:{trig:'Post dedupe (21D)',route:'Vegapay → core / Finacle (transactive)',req:'{ pan, ucic, program, limit:40000 }',resp:'{ customerId, accountId, status:"active" }'}},
+ {id:'risk',attach:'s21',dx:560,row:'B1',w:190,h:112,kind:'check',side:'bank',num:'21C',owner:'Bank · Jocata',title:'Risk categorization',sub:'Assign risk tier (parallel).',mockup:'riskRun',
+   api:{trig:'On auditor approve',route:'Bank → Jocata',req:'{ pan, profile }',resp:'{ riskTier }'}},
+ {id:'aml',attach:'s21',dx:770,row:'B1',w:190,h:112,kind:'check',side:'bank',num:'21C',owner:'Bank · Jocata',title:'AML check',sub:'Sanctions / PEP / watchlist (parallel).',mockup:'amlRun',
+   api:{trig:'On auditor approve',route:'Bank → Jocata',req:'{ name, dob, pan }',resp:'{ amlClear:true }'}},
+ {id:'fraud',attach:'s21',dx:980,row:'B1',w:190,h:112,kind:'check',side:'bank',num:'21C',owner:'Bank · Experian Hunter',title:'Fraud check',sub:'Fraud / mule detection (parallel).',mockup:'fraudRun',
+   api:{trig:'On auditor approve',route:'Bank → Experian Hunter',req:'{ pan, deviceSignals }',resp:'{ fraudFlag:false }'}},
+ {id:'hardReject',attach:'agent',dx:0,row:'BREJ',w:220,h:100,kind:'drop',side:'bank',num:'✕',owner:'Termination',title:'VKYC hard reject',sub:'VKYC failed → terminated; SMS sent.',mockup:'hardRejectScr'},
+ {id:'audReject',attach:'auditor',dx:0,row:'TREJ',w:220,h:100,kind:'drop',side:'bank',num:'✕',owner:'Termination',title:'Auditor reject',sub:'Auditor did not approve → terminated.',mockup:'auditorRejectScr'},
+ {id:'pinFail',attach:'s23',dx:0,row:'B1',w:210,h:110,kind:'drop',side:'co',num:'✕',owner:'Termination',title:'PIN setup failed',sub:'PIN setup failed → message (SMS) sent to customer.',mockup:'pinSetupFail'}
+];
+
+/* ---------- layout ---------- */
+let cursor=60;
+LANE.forEach(n=>{n.x=cursor+(n.gap||0);n.y=ROW.L;n.h=n.h||130;n.kind=n.kind||'step';cursor=n.x+n.w;});
+const byId=Object.fromEntries(LANE.map(n=>[n.id,n]));
+OFF.forEach(n=>{const a=byId[n.attach];n.x=a.x+n.dx;n.y=ROW[n.row];byId[n.id]=n;});
+const NODES=[...LANE,...OFF];
+
+/* ---------- zones ---------- */
+const ZDEF=[
+ {side:'co',label:'Co-brand owned · App journey',ids:['s1','s2','s6','s7','s8','c3','c4','c5','c8']},
+ {side:'bank',label:"Bank / bank's onboarding partner owned · KYC · BRE · sanction",ids:['s9','c9b','s10','s11','otpSent','verifyA','ageChk','linkChk','s12','c12','s13','bureauSms','bre','reject','s14']},
+ {side:'co',label:'Co-brand owned · Mandate / UPI Autopay',ids:['s15','s16','acctChk','s17','s18','s19']},
+ {side:'bank',label:'Bank owned · Review · line issued · Video KYC · account creation',ids:['s20','s20a','s21','agent','auditor','risk','aml','fraud','dedupe','acctCreate','hardReject','audReject']},
+ {side:'co',label:'Co-brand / NPCI · Link credit line & PIN setup',ids:['s22','s23','s24','pinFail']}
+];
+const BOXTOP=40,BOXBOT=1060;
+const BOXES=ZDEF.map(z=>{const ns=z.ids.map(i=>byId[i]);const x0=Math.min(...ns.map(n=>n.x))-30;const x1=Math.max(...ns.map(n=>n.x+n.w))+30;
+  return {side:z.side,label:z.label,x:x0,y:BOXTOP,w:x1-x0,h:BOXBOT-BOXTOP};});
+
+const canvas=document.getElementById('canvas');
+const maxX=Math.max(...NODES.map(n=>n.x+n.w),...BOXES.map(b=>b.x+b.w))+40;
+const maxY=BOXBOT+40;
+canvas.style.width=maxX+'px';canvas.style.height=maxY+'px';
+const svg=document.getElementById('wires');
+svg.setAttribute('width',maxX);svg.setAttribute('height',maxY);svg.setAttribute('viewBox',`0 0 ${maxX} ${maxY}`);
+const cx=n=>n.x+n.w/2,bot=n=>n.y+n.h,mid=n=>n.y+n.h/2;
+const laneMidY=ROW.L+65;
+
+let w='<defs>'+
+ '<marker id="ai" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#3b5bdb"/></marker>'+
+ '<marker id="ab" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#0d9488"/></marker>'+
+ '<marker id="aa" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#d97706"/></marker>'+
+ '<marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#dc2626"/></marker>'+
+ '<marker id="ag" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#16a34a"/></marker>'+
+ '</defs>';
+BOXES.forEach(b=>{const c=b.side==='co'?'#3b5bdb':'#0d9488';const f=b.side==='co'?'rgba(99,102,241,.05)':'rgba(13,148,136,.05)';
+  w+=`<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="20" fill="${f}" stroke="${c}" stroke-width="2.5" stroke-dasharray="10,8"/>`;});
+
+/* lane forward + handoffs */
+const front=n=>(n.side==='co'||n.side==='npci');
+function laneLink(A,B){ if(front(A)!==front(B)){const toFront=front(B);const col=toFront?'#3b5bdb':'#0d9488';const mk=toFront?'ai':'ab';const mx=(A.x+A.w+B.x)/2;
+    w+=`<line x1="${A.x+A.w}" y1="${laneMidY}" x2="${B.x-8}" y2="${laneMidY}" stroke="${col}" stroke-width="3" stroke-dasharray="2,3" marker-end="url(#${mk})"/>`;
+    w+=`<text x="${mx}" y="${laneMidY-10}" font-size="10.5" font-weight="800" fill="${toFront?'#1e3a8a':'#0f766e'}" text-anchor="middle">hand-off ▶</text>`;
+  }else{const col=front(A)?'#3b5bdb':'#0d9488';const mk=front(A)?'ai':'ab';
+    w+=`<line x1="${A.x+A.w}" y1="${laneMidY}" x2="${B.x-8}" y2="${laneMidY}" stroke="${col}" stroke-width="2.5" marker-end="url(#${mk})"/>`;} }
+const FWD=['s1','s2','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','s16','s17','s18','s19','s20','s20a','s21'];
+for(let i=0;i<FWD.length-1;i++) laneLink(byId[FWD[i]],byId[FWD[i+1]]);
+laneLink(byId.s21,byId.s22); laneLink(byId.s22,byId.s23); laneLink(byId.s23,byId.s24);
+
+/* off-node dotted connectors (auto) */
+const AUTO=['c3','c4','c5','c8','c9b','otpSent','c12','acctChk'];
+AUTO.forEach(id=>{const n=byId[id];const x=cx(n);
+  const laneNode=LANE.find(l=>x>=l.x&&x<=l.x+l.w);
+  const above=n.y<ROW.L;
+  const y0=above?(laneNode?laneNode.y:ROW.L):(laneNode?bot(laneNode):laneMidY);
+  const y1=above?bot(n):n.y;
+  w+=`<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" stroke="#d97706" stroke-width="2" stroke-dasharray="3,4" marker-end="url(#aa)"/>`;
+  w+=`<circle cx="${x}" cy="${y0}" r="3.3" fill="#d97706"/>`;});
+
+/* aadhaar backend: otpSent -> verifyA (horizontal), verifyA -> age/link (fan) */
+w+=`<line x1="${byId.otpSent.x+byId.otpSent.w}" y1="${mid(byId.otpSent)}" x2="${byId.verifyA.x-8}" y2="${mid(byId.otpSent)}" stroke="#0d9488" stroke-width="2.5" marker-end="url(#ab)"/>`;
+w+=`<line x1="${cx(byId.s11)}" y1="${bot(byId.s11)}" x2="${cx(byId.otpSent)}" y2="${byId.otpSent.y}" stroke="#d97706" stroke-width="2" stroke-dasharray="3,4" marker-end="url(#aa)"/>`;
+w+=`<circle cx="${cx(byId.s11)}" cy="${bot(byId.s11)}" r="3.3" fill="#d97706"/>`;
+[byId.ageChk,byId.linkChk].forEach(n=>{w+=`<line x1="${cx(byId.verifyA)}" y1="${bot(byId.verifyA)}" x2="${cx(n)}" y2="${n.y}" stroke="#d97706" stroke-width="2" stroke-dasharray="3,4" marker-end="url(#aa)"/>`;});
+w+=`<circle cx="${cx(byId.verifyA)}" cy="${bot(byId.verifyA)}" r="3.3" fill="#d97706"/>`;
+
+/* BRE: eligible (green straight to lane), non-eligible (red up to reject), bureau SMS (horizontal) */
+const bre=byId.bre,rej=byId.reject,bsms=byId.bureauSms;
+w+=`<line x1="${cx(bre)}" y1="${bot(bre)}" x2="${cx(bre)}" y2="${laneMidY}" stroke="#16a34a" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#ag)"/>`;
+w+=`<text x="${cx(bre)+12}" y="${(bot(bre)+laneMidY)/2}" font-size="9.5" font-weight="700" fill="#16a34a">Eligible</text>`;
+w+=`<line x1="${cx(bre)}" y1="${bre.y}" x2="${cx(bre)}" y2="${bot(rej)}" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#ar)"/>`;
+w+=`<text x="${cx(bre)+10}" y="${bre.y-6}" font-size="9.5" font-weight="700" fill="#dc2626">Non eligible</text>`;
+w+=`<line x1="${bre.x}" y1="${mid(bre)}" x2="${bsms.x+bsms.w+8}" y2="${mid(bre)}" stroke="#d97706" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#aa)"/>`;
+w+=`<text x="${bsms.x+bsms.w+10}" y="${mid(bre)-8}" font-size="9" font-weight="700" fill="#b45309" text-anchor="end">Bureau pull SMS</text>`;
+
+/* VKYC backend — agent BELOW the lane, auditor onwards ABOVE the lane (lane 21→22 connects through the middle) */
+const ag=byId.agent,au=byId.auditor,dd=byId.dedupe,ac=byId.acctCreate,S21=byId.s21;
+/* s21 -> agent (down, start VKYC) */
+w+=`<line x1="${cx(ag)+22}" y1="${bot(S21)}" x2="${cx(ag)+22}" y2="${ag.y-2}" stroke="#0d9488" stroke-width="2.5" stroke-dasharray="4,4" marker-end="url(#ab)"/>`;
+w+=`<text x="${cx(ag)+30}" y="${(bot(S21)+ag.y)/2}" font-size="9.5" font-weight="700" fill="#0f766e">start VKYC</text>`;
+/* agent soft reject -> back up to s21 */
+w+=`<line x1="${cx(ag)-22}" y1="${ag.y}" x2="${cx(ag)-22}" y2="${bot(S21)+2}" stroke="#c2410c" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#aa)"/>`;
+w+=`<text x="${cx(ag)-30}" y="${(bot(S21)+ag.y)/2+3}" font-size="9" font-weight="700" fill="#c2410c" text-anchor="end">Soft reject</text>`;
+/* agent hard reject -> hardReject (further down) */
+w+=`<line x1="${cx(ag)}" y1="${bot(ag)}" x2="${cx(ag)}" y2="${byId.hardReject.y-2}" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#ar)"/>`;
+w+=`<text x="${cx(ag)+10}" y="${bot(ag)+34}" font-size="9" font-weight="700" fill="#dc2626">Hard reject</text>`;
+/* agent approve -> auditor (up, crosses the lane) */
+w+=`<polyline points="${ag.x+ag.w},${mid(ag)} ${au.x-45},${mid(ag)} ${au.x-45},${mid(au)} ${au.x-8},${mid(au)}" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#ag)"/>`;
+w+=`<text x="${au.x-45}" y="${laneMidY-8}" font-size="9" font-weight="700" fill="#16a34a" text-anchor="middle">Approve ▲</text>`;
+/* auditor reject -> audReject (up) */
+w+=`<line x1="${cx(au)}" y1="${au.y}" x2="${cx(au)}" y2="${bot(byId.audReject)+2}" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#ar)"/>`;
+w+=`<text x="${cx(au)+10}" y="${au.y-8}" font-size="9" font-weight="700" fill="#dc2626">Reject</text>`;
+/* auditor approve -> fork DOWN to the horizontal parallel row (risk/aml/fraud, bottom) */
+w+=`<text x="${cx(au)}" y="${bot(au)+22}" font-size="9" font-weight="700" fill="#16a34a" text-anchor="middle">Approved (parallel) ▼</text>`;
+[byId.risk,byId.aml,byId.fraud].forEach(n=>{
+  w+=`<polyline points="${cx(au)},${bot(au)} ${cx(au)},600 ${cx(n)},600 ${cx(n)},${n.y-2}" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#ag)"/>`;});
+/* parallel -> join UP to dedupe (top) */
+[byId.risk,byId.aml,byId.fraud].forEach(n=>{
+  w+=`<polyline points="${n.x+n.w},${mid(n)} ${dd.x-45},${mid(n)} ${dd.x-45},${mid(dd)} ${dd.x-8},${mid(dd)}" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#aa)"/>`;});
+/* dedupe -> acctCreate (top) */
+w+=`<line x1="${dd.x+dd.w}" y1="${mid(dd)}" x2="${ac.x-8}" y2="${mid(dd)}" stroke="#b45309" stroke-width="2.5" stroke-dasharray="4,4" marker-end="url(#aa)"/>`;
+w+=`<text x="${(dd.x+dd.w+ac.x)/2}" y="${mid(dd)-9}" font-size="9" font-weight="700" fill="#b45309" text-anchor="middle">account creation</text>`;
+/* s23 -> pinFail (down) */
+w+=`<line x1="${cx(byId.s23)}" y1="${bot(byId.s23)}" x2="${cx(byId.pinFail)}" y2="${byId.pinFail.y-2}" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#ar)"/>`;
+w+=`<circle cx="${cx(byId.s23)}" cy="${bot(byId.s23)}" r="3.3" fill="#dc2626"/>`;
+w+=`<text x="${cx(byId.pinFail)+10}" y="${(bot(byId.s23)+byId.pinFail.y)/2}" font-size="9" font-weight="700" fill="#dc2626">PIN failed → SMS</text>`;
+svg.innerHTML=w;
+
+BOXES.forEach(b=>{const el=document.createElement('div');el.className='zone-lbl '+b.side;el.style.left=(b.x+14)+'px';el.style.top=(b.y-13)+'px';el.textContent=b.label;canvas.appendChild(el);});
+NODES.forEach(n=>{const el=document.createElement('div');el.className='card '+n.kind+(n.kind==='step'?' '+n.side:'');
+  el.style.left=n.x+'px';el.style.top=n.y+'px';el.style.width=n.w+'px';el.style.minHeight=n.h+'px';
+  const dec=n.decision?'<span class="dtag">◆</span>':'';
+  let branch='';
+  if(n.passTxt||n.midTxt||n.failTxt){branch='<div class="branch">'+(n.passTxt?`<span class="p">✓ ${n.passTxt}</span>`:'')+(n.midTxt?`<span class="m">↺ ${n.midTxt}</span>`:'')+(n.failTxt?`<span class="f">✕ ${n.failTxt}</span>`:'')+'</div>';}
+  el.innerHTML=`<span class="num">${n.num}</span>${dec}<div class="pad"><div class="owner">${n.owner}</div><h4>${n.title}</h4><p>${n.sub}</p>${branch}
+     <div class="foot"><span class="view">🔍 View screen</span>${n.api?`<button class="ibtn" onclick="event.stopPropagation();openApi('${n.id}')">i</button>`:''}</div></div>`;
+  el.onclick=()=>openScreen(n.id);canvas.appendChild(el);});
+
+/* ---------------- MOCKUPS ---------------- */
+function ph(inner){return `<div class="phone"><div class="notch"></div><div class="scr"><div class="stat"><span>1:47</span><span>••• 📶 🔋76</span></div>${inner}</div></div>`;}
+const phone=ph;
+const cohd=`<div class="ph-hd"><span class="bk">←</span><span class="lg2">◉ Credit Line</span><span class="help">Help</span></div>`;
+const bankhd=`<div class="ph-hd bk-hd"><span class="bk">←</span><span class="lg2"><span class="odot">●</span> Bank</span><span class="aad">AADHAAR</span></div>`;
+function proc(icon,title,sub,pct){return ph(`${cohd}<div style="height:150px;margin:8px 18px;border-radius:14px;background:linear-gradient(135deg,#e0f2fe,#f0f9ff);display:flex;align-items:center;justify-content:center;font-size:50px;">${icon}</div>
+  <div class="center-txt"><h3>${title}</h3><p>${sub}</p></div><div class="bar"><i style="width:${pct}"></i></div><div class="credit" style="margin-top:120px;">Credit provided by <b>● Bank</b></div>`);}
+function res(icon,title,sub,cta,ghost){return ph(`${cohd}<div class="pill-ok">${icon}</div><div class="center-txt"><h3>${title}</h3><p>${sub}</p></div>
+  <div style="padding:20px;"><div class="cta${ghost?' ghost':''}">${cta}</div></div><div class="credit" style="margin-top:70px;">${ghost?'Message provided by the Bank':'Credit provided by <b>● Bank</b>'}</div>`);}
+function sms(from,body){return ph(`<div class="sms"><div style="font-size:11px;color:#94a3b8;text-align:center;margin-bottom:14px;">Messages · now</div><div class="smsbox"><div class="from">${from}</div><div class="body">${body}</div></div></div>`);}
+const M={
+ home:()=>phone(`<div style="display:flex;align-items:center;gap:8px;padding:8px 16px;"><div style="width:32px;height:32px;border-radius:50%;background:#c7f0e4;display:flex;align-items:center;justify-content:center;font-weight:800;color:#0d9488;">C</div><div style="flex:1;text-align:center;font-size:11px;font-weight:700;">🪙 Earn rewards ›</div><div>🔍</div><div>🔔</div></div>
+   <div class="tile" style="margin:6px 14px;"><div style="display:flex;justify-content:space-between;"><b style="font-size:13px;">Recharge &amp; Bills</b><span style="color:var(--co);font-size:11px;font-weight:700;">View More</span></div><div class="grid4"><div><div class="ic">📱</div>Recharge</div><div><div class="ic">🚗</div>FASTag</div><div><div class="ic">💡</div>Electricity</div><div><div class="ic">🧾</div>Loan EMI</div></div></div>
+   <div style="display:flex;gap:10px;margin:6px 14px;"><div class="tile hl2" style="flex:1;"><b style="font-size:12.5px;">Co-brand Credit Line</b><div style="font-size:10px;color:#64748b;margin-top:3px;">Credit line on UPI (CLOU)</div></div><div class="tile" style="flex:1;"><b style="font-size:12.5px;">Rewards</b><div style="font-size:10px;color:#64748b;margin-top:3px;">Up to 5% off</div></div></div>
+   <div class="tile" style="margin:6px 14px;"><b style="font-size:13px;">Travel &amp; Tickets</b><div class="grid4"><div><div class="ic">✈️</div>Flight</div><div><div class="ic">🚆</div>Train</div><div><div class="ic">🚌</div>Bus</div><div><div class="ic">🏨</div>Hotels</div></div></div>
+   <div style="text-align:center;margin:14px;"><span style="background:var(--co);color:#fff;padding:12px 26px;border-radius:24px;font-weight:800;">🔳 Scan QR</span></div>`),
+ enter:()=>phone(`${cohd}<div class="hero"><div class="hl">Pre-approved, up to</div><div class="hv">₹60,000</div><div class="hn">Checking eligibility won't impact your credit score</div></div>
+   <div class="sheet"><h3>Tell us about you</h3><div class="h-sub">We use these to check your eligibility</div><div class="field">PAN Number <b>REQUIRED</b></div><div class="field">Email ID <b>REQUIRED</b></div><div class="field">Date of Birth <span class="opt">Optional</span></div><div class="field">Full Name <span class="opt">Optional</span></div><div class="chk"><span class="b">✓</span><span>I agree to the <a>Terms</a> &amp; <a>Privacy Policy</a></span></div><div class="cta">Continue</div></div><div class="credit">Credit provided by <b>● Bank</b></div>`),
+ verify:()=>phone(`${cohd}<div class="illus" style="height:150px;font-size:52px;background:linear-gradient(135deg,#fef3c7,#fffbeb);">🔍</div><div class="center-txt"><h3>Verifying your details…</h3><p>This may take up to 60 seconds.</p></div><div class="bar"><i style="width:22%"></i></div><div class="credit" style="margin-top:120px;">Credit provided by <b>● Bank</b></div>`),
+ limitPass:()=>phone(`<div class="ph-hd"><span class="lg2">◉ Credit Line</span></div><div style="text-align:center;padding-top:34px;font-size:56px;">✅</div><div class="center-txt"><h3>You're eligible!</h3><p>Your assigned limit is</p></div><div class="amt" style="margin-top:8px;">₹40,000</div><div style="padding:18px;"><div class="cta">Continue</div></div><div class="credit" style="margin-top:70px;">Credit provided by <b>● Bank</b></div>`),
+ limitFail:()=>phone(`${cohd}<div style="text-align:center;padding-top:38px;font-size:56px;">😞</div><div class="center-txt"><h3>We can't offer a credit line right now</h3><p>Based on the lender's policy, we're unable to approve at this time.</p></div><div style="padding:22px;"><div class="cta ghost">Okay</div></div><div class="credit" style="margin-top:60px;">Message provided by the Bank</div>`),
+ dedupeFail:()=>phone(`${cohd}<div style="text-align:center;padding-top:38px;font-size:56px;">ℹ️</div><div class="center-txt"><h3>You already have a credit line</h3><p>An active line exists against your PAN. Manage it from the app.</p></div><div style="padding:22px;"><div class="cta">Go to my Credit Line</div></div><div class="credit" style="margin-top:60px;">Credit provided by <b>● Bank</b></div>`),
+ offer:()=>phone(`${cohd}<div style="text-align:center;"><span class="ribbon">CONGRATULATIONS</span></div><div class="amt-l" style="margin-top:16px;">Get limit upto</div><div class="amt">₹40,000</div><div class="illus">🎉</div><div class="sheet"><div style="font-size:11.5px;color:#475569;line-height:1.5;">Your pre-qualified credit line is ready. Review lenders and continue to KYC.</div><div class="cta" style="margin-top:14px;">Continue</div></div><div class="credit">Credit provided by <b>● Bank</b></div>`),
+ lenders:()=>phone(`<div class="ph-hd"><span class="bk">←</span><span class="lg2">Choose your lender</span></div><div style="padding:14px 16px;"><div class="lender sel"><div class="logo">🏦</div><div><div class="nm">Bank</div><div class="lim">Credit line up to ₹40,000</div></div><div class="radio"></div></div><div class="lender"><div class="logo">🏛️</div><div><div class="nm">Lender B</div><div class="lim">Up to ₹30,000</div></div><div class="radio"></div></div><div class="lender"><div class="logo">🏢</div><div><div class="nm">Lender C</div><div class="lim">Not eligible</div></div><div class="radio"></div></div><div class="cta" style="margin-top:8px;">Proceed with Bank</div></div><div class="credit">Lenders shown are eligibility-driven</div>`),
+ selfie:()=>phone(`${cohd}<div style="text-align:center;font-size:11px;color:#475569;margin-top:6px;">Get limit upto <b style="color:var(--co)">₹40,000</b></div><div class="cam">🤳<div class="lens">📷 Opening your front camera…</div></div><div style="padding:0 16px;"><div style="text-align:center;font-weight:800;font-size:14px;">Submit your selfie to complete KYC</div><div style="text-align:center;font-size:10.5px;color:#64748b;margin:4px 0 12px;">Look straight into the camera.</div><div class="chk"><span class="b">✓</span><span>I give consent to <b>Bank</b> to collect and verify my credit report from bureaus. <a>Show more</a></span></div><div class="cta">Agree &amp; Proceed for KYC</div><div class="cta ghost">Retake Selfie</div></div><div class="credit">Credit provided by <b>● Bank</b></div>`),
+ upload:()=>phone(`<div class="ph-hd"><span class="lg2">◉ Credit Line</span><span class="help">Help</span></div><div class="avatar">🧑</div><div class="center-txt"><h3>We are uploading your photo…</h3><p>This will not take more than 5 seconds</p></div><div class="bar"><i style="width:70%"></i></div><div class="credit" style="margin-top:120px;">Credit provided by <b>● Bank</b></div>`),
+ panConfirm:()=>ph(`${cohd}<div class="sheet"><h3>Confirm your details</h3><div class="h-sub">Prefilled — just confirm</div><div class="field filled">PAN · ABCDE1234F</div><div class="field filled">Name · Customer Name</div><div style="font-size:11px;font-weight:800;color:#334155;margin:6px 0 8px;">Consents</div><div class="chk"><span class="b">✓</span><span>T&amp;C</span></div><div class="chk"><span class="b">✓</span><span>PAN usage</span></div><div class="chk"><span class="b">✓</span><span>MITC</span></div><div class="chk"><span class="b">✓</span><span>Outreach</span></div><div class="chk"><span class="b">✓</span><span>Data Storage</span></div><div class="cta">Confirm &amp; Continue</div></div><div class="credit">Credit provided by <b>● Bank</b></div>`),
+ panPass:()=>res('✅','PAN verified','PAN & name check passed. Proceeding to Aadhaar KYC.','Continue to Aadhaar KYC'),
+ panFail:()=>res('⛔',"We can't continue","Your PAN status or name didn't match our records.",'Okay',true),
+ aadhaarEntry:()=>ph(`${bankhd}<div style="padding:14px 18px 0;"><div style="font-size:16px;color:#334155;">Enter Your</div><div style="font-size:22px;font-weight:800;color:#12385f;">Aadhaar / VID Number</div><div style="font-size:11px;color:#94a3b8;margin-top:3px;">Please enter your Aadhaar / VID Number</div></div><div style="padding:16px 18px;"><div class="uline">Aadhaar / VID Number</div><div style="font-size:9.5px;color:#94a3b8;margin-bottom:10px;">Secured with the bank</div><div style="font-size:10px;color:#475569;line-height:1.5;background:#f1f5f9;border-radius:10px;padding:11px;">I intend to open account with <b>Bank</b>. I voluntarily submit my Aadhaar to authenticate via eKYC. <b style="color:#12385f;">More Info</b></div><div class="cta bank" style="margin-top:16px;">Perform KYC</div></div>`),
+ aadhaarOtp:()=>ph(`<div style="text-align:center;padding-top:8px;"><span style="font-size:10px;background:#eef2ff;border-radius:14px;padding:4px 10px;color:#475569;font-weight:700;">✉ VM-ADHAAR-G · 277824</span></div>${bankhd}<div style="padding:8px 18px 0;"><div style="font-size:16px;color:#334155;">Enter the</div><div style="font-size:22px;font-weight:800;color:#12385f;">OTP</div><div style="font-size:11px;color:#94a3b8;margin-top:3px;">6-digit OTP sent to your Aadhaar-registered mobile.</div></div><div style="padding:6px 18px;"><div style="font-size:11px;font-weight:800;color:#334155;margin-top:8px;">ONE-TIME PASSWORD</div><div class="otp"><span></span><span></span><span></span><span></span><span></span><span></span></div><div style="font-size:10.5px;color:#475569;margin:8px 0;">Didn't receive? <b style="color:#12385f;">Resend OTP</b></div><div class="cta bank">Verify</div></div>`),
+ otpSms:()=>sms('VM-ADHAAR-G','Your OTP for <b>Bank</b> Credit Line eKYC is <b>277824</b>. Valid 10 minutes. Do not share.'),
+ procFetch:()=>proc('📄','Fetching Aadhaar details…','Retrieving eKYC from UIDAI.','30%'),
+ procVault:()=>proc('🔐','Securing your Aadhaar…','Tokenising Aadhaar number.','50%'),
+ procDms:()=>proc('🗂️','Saving KYC document…','Storing eKYC securely.','70%'),
+ ageFail:()=>res('⛔','Not eligible','You must be at least 18 years old.','Okay',true),
+ linkFail:()=>res('⛔','PAN–Aadhaar mismatch',"PAN and Aadhaar details didn't match.",'Okay',true),
+ addl:()=>ph(`${cohd}<div class="sheet"><h3>Additional details</h3><div class="field">Mother's name <span class="opt">Required</span></div><div class="field">Marital status <span class="opt">▾</span></div><div class="field">Occupation <span class="opt">▾</span></div><div class="field">Annual income <span class="opt">▾</span></div><div style="font-size:12.5px;font-weight:800;color:#0f172a;margin:8px 0 3px;">Communication address</div><div style="font-size:10px;color:#64748b;margin-bottom:6px;">Fetched from your Aadhaar</div><div class="addr" style="display:flex;justify-content:space-between;gap:8px;"><span>📍 H.No 12, Sample Street, City — 560001</span><span style="color:var(--co);font-weight:800;">✎ Edit</span></div><div class="cta">Continue</div></div><div class="credit">Credit provided by <b>● Bank</b></div>`),
+ addrEdit:()=>ph(`${cohd}<div class="sheet"><h3>Edit communication address</h3><div class="h-sub">Update, then save</div><div class="field filled">Address line 1 · H.No 12</div><div class="field filled">City · City</div><div class="field filled">State · State</div><div class="field">PIN Code <span class="req">REQUIRED</span></div><div class="cta">Save &amp; Continue</div><div style="font-size:9.5px;color:#94a3b8;text-align:center;margin-top:8px;">PIN validated after save.</div></div><div class="credit">Credit provided by <b>● Bank</b></div>`),
+ pinVerify:()=>proc('📍','Checking serviceability…','Verifying your pincode.','55%'),
+ pinFail:()=>res('⛔','Pincode not serviceable',"Unable to offer a credit line at this pincode. A confirmation SMS has been sent.",'Okay',true),
+ pinRejectSms:()=>sms('VM-BANK','We are sorry — your <b>Bank</b> Credit Line could not proceed as your PIN code is not serviceable.'),
+ consentPopup:()=>ph(`${cohd}<div style="height:520px;background:rgba(15,23,42,.28);position:relative;"><div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:18px 16px 20px;"><div style="width:40px;height:4px;border-radius:3px;background:#e2e8f0;margin:0 auto 12px;"></div><h3 style="margin:0 0 3px;font-size:15px;font-weight:800;">Consent &amp; Declaration</h3><div style="font-size:11px;color:#64748b;margin-bottom:14px;">Please confirm to continue</div><div class="chk"><span class="b">✓</span><span>I am an <b>Indian Resident</b></span></div><div class="chk"><span class="b">✓</span><span>I am <b>not a PeP</b></span></div><div class="chk"><span class="b">✓</span><span>I confirm my <b>FATCA</b> declaration</span></div><div class="chk"><span class="b">✓</span><span>For <b>personal use only</b></span></div><div class="cta">Agree &amp; Continue</div></div></div>`),
+ bureauVerify:()=>proc('📊','Checking your credit profile…','Bureau pull, score-card & risk policy.','45%'),
+ breReject:()=>res('⛔','Not eligible',"Based on the bureau pull and risk policy, we can't offer a credit line now. A rejection SMS & email have been sent.",'Okay',true),
+ bureauSmsScr:()=>sms('VM-BANK','Your credit bureau has been fetched for your <b>Bank</b> Credit Line application.'),
+ sanctionOffer:()=>ph(`${cohd}<div style="text-align:center;"><span class="ribbon g">SANCTIONED</span></div><div class="amt-l" style="margin-top:16px;">Your sanctioned credit limit</div><div class="amt">₹40,000</div><div class="sheet"><h3>Offer summary</h3><div class="field filled">Sanctioned limit · ₹40,000</div><div class="field filled">Interest (APR) · as per KFS</div><div class="field filled">Validity · 12 months</div><div class="cta">Accept offer</div></div><div class="credit">Credit provided by <b>● Bank</b></div>`),
+ bankGrid:()=>ph(`${cohd}<div style="padding:12px 16px 0;"><h3 style="margin:0 0 3px;font-size:15px;font-weight:800;">Add bank account · UPI Autopay</h3><div style="font-size:11px;color:#64748b;margin-bottom:10px;">Used to repay your monthly dues</div><div class="info">ⓘ Account should be in the name of <b>Customer Name</b></div><div class="field">🔍 Search your bank</div><div class="grid4" style="margin-top:4px;"><div><div class="ic">🔻</div>AXIS</div><div><div class="ic">🟠</div>BOB</div><div><div class="ic">🟥</div>HDFC</div><div><div class="ic">🔶</div>ICICI</div></div><div class="grid4" style="margin-top:12px;"><div><div class="ic">🟦</div>INDS</div><div><div class="ic">🟣</div>KMB</div><div><div class="ic">🔴</div>PNB</div><div><div class="ic">🔵</div>SBI</div></div><div style="font-size:13px;font-weight:800;margin:14px 0 8px;">All Banks</div><div class="lender"><div class="logo">🏦</div><div><div class="nm">Canara Bank</div></div></div></div><div class="credit">Credit provided by <b>● Bank</b></div>`),
+ accountEntry:()=>ph(`${cohd}<div style="padding:12px 16px 0;"><h3 style="margin:0 0 3px;font-size:15px;font-weight:800;">Add bank account · UPI Autopay</h3><div style="font-size:11px;color:#64748b;margin-bottom:10px;">Used to repay your monthly dues</div><div class="info">ⓘ Account in the name of <b>Customer Name</b></div><div style="border:1px solid #d5dced;border-radius:12px;padding:11px 13px;margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:9px;color:#94a3b8;">Selected bank</div><div style="font-size:13px;font-weight:700;">CANARA BANK</div></div><span style="color:var(--co);font-weight:700;font-size:11px;">Change</span></div><div class="field">Account number</div><div class="field">IFSC code <span style="color:var(--co);font-weight:700;">Find IFSC</span></div><div class="cta">Setup UPI Autopay</div></div><div class="credit">Credit provided by <b>● Bank</b></div>`),
+ acctVerify:()=>proc('🏦','Verifying bank account…','Penny-drop and name match.','55%'),
+ acctFail:()=>res('⛔','Account not verified',"Account holder name didn't match your KYC name. Add an account in your own name.",'Re-add account',true),
+ rupee1:()=>ph(`<div class="ph-hd"><span class="bk">←</span><span class="lg2">Paying ₹1</span></div><div style="text-align:center;font-size:10.5px;color:#64748b;margin:2px 0 12px;">to set up UPI Autopay</div><div class="info" style="margin:0 16px 12px;">ⓘ Pay only through the account ending <b>0596</b></div><div class="field" style="margin:0 16px 10px;">💳 Pay using Co-brand UPI <span style="color:var(--ok);font-weight:800;">✓</span></div><div class="sheetpop"><div style="font-size:15px;font-weight:800;">Processing Your Payment</div><div style="font-size:10.5px;color:#64748b;margin-top:4px;">Do not close the app or press back</div><div style="margin-top:14px;letter-spacing:4px;color:#2f8fe0;">• • ● • •</div></div>`),
+ maxAutopay:()=>ph(`<div class="ph-hd"><span class="bk">←</span><span class="lg2" style="color:#12385f;">● Bank (SFB)</span></div><div style="text-align:center;padding:2px 16px 0;"><div style="font-size:9.5px;color:#94a3b8;">UPI ID: bankltd@ybl</div></div><div style="text-align:center;margin-top:44px;font-size:12px;color:#334155;">Automatic Payment Request for Upto</div><div class="amt" style="margin-top:2px;">₹15,000</div><div style="text-align:center;color:var(--co);font-size:11px;font-weight:700;margin-top:4px;">View Details</div><div style="margin-top:56px;padding:0 16px;"><div style="font-size:11px;color:#64748b;margin-bottom:6px;">Pay using</div><div class="lender"><div class="logo">🏦</div><div><div class="nm">Canara Bank - 0596</div><div class="lim" style="color:var(--co);">Check Balance</div></div></div><div class="cta blue">🛡 Setup Automatic</div><div style="text-align:center;font-size:9px;color:#94a3b8;margin-top:12px;">Co-brand · powered by UPI AUTOPAY</div></div>`),
+ autopaySuccess:()=>ph(`<div class="ph-hd"><span class="bk">←</span><span class="lg2" style="color:#12385f;">● Bank (SFB)</span></div><div style="opacity:.35;"><div style="text-align:center;margin-top:44px;font-size:12px;color:#334155;">Automatic Payment Request for Upto</div><div class="amt" style="margin-top:2px;">₹15,000</div></div><div class="sheetpop" style="text-align:left;padding:20px 18px 22px;"><div style="display:flex;align-items:flex-start;gap:8px;"><span style="font-size:15px;font-weight:800;color:#15803d;line-height:1.25;">Automatic Payment Setup Successful</span><span style="margin-left:auto;color:#16a34a;font-size:20px;">✅</span></div><div style="font-size:11px;color:#475569;margin-top:8px;line-height:1.5;">You will be taken back to <b>Bank</b> in 5 seconds.</div><div class="cta blue" style="margin-top:14px;">Done</div><div style="text-align:center;font-size:9px;color:#94a3b8;margin-top:10px;">UPI AUTOPAY</div></div>`),
+ reviewLine:()=>ph(`${cohd}<div style="text-align:center;font-size:12px;color:#334155;margin-top:8px;">Your approved credit line</div><div class="amt" style="margin-top:2px;">₹40,000</div><div class="sheet"><h3>Review details</h3><div class="field filled">Convenience fee <span>2%</span></div><div class="field filled">PAN Number <span>ABCDE1234F</span></div><div class="field filled">Name as per PAN <span>Customer Name</span></div><h3 style="margin-top:14px;">Review Key Fact Statement</h3><div style="background:#f1f5f9;border-radius:12px;padding:12px;font-size:10.5px;color:#475569;line-height:1.6;">Key Facts · Part 1 (Interest rate…)<br>Date: 25/09/2025<br><span style="color:var(--co);font-weight:700;">Read key fact statement ›</span></div><div class="cta">Agree &amp; Proceed</div></div><div class="credit">Credit provided by <b>● Bank</b></div>`),
+ lineIssued:()=>ph(`${cohd}<div class="pill-ok">🎉</div><div class="center-txt"><h3>Your credit line is issued</h3><p>Complete your video KYC to activate and start using your credit line on UPI.</p></div><div style="padding:20px;"><div class="cta">Continue to Video KYC</div></div><div style="text-align:center;font-size:9px;color:#94a3b8;margin-top:6px;">Note: account is created only after VKYC &amp; dedupe.</div><div class="credit" style="margin-top:40px;">Credit provided by <b>● Bank</b></div>`),
+ vkycStart:()=>ph(`${cohd}<div style="text-align:center;padding-top:12px;font-size:46px;">🤳</div><div style="text-align:center;font-weight:800;font-size:16px;margin-top:4px;">Complete video KYC</div><div style="text-align:center;font-size:11px;color:#64748b;margin:4px 20px 0;line-height:1.4;">Activated post successful KYC. Complete within <b>72 hrs</b> of eKYC.</div><div class="sheet"><h3>Please note</h3><div class="numlist"><div class="li"><span class="n">1</span><span>Keep your physical PAN card ready</span></div><div class="li"><span class="n">2</span><span>Keep a pen and paper for signatures</span></div><div class="li"><span class="n">3</span><span>Find a well-lit and quiet place</span></div><div class="li"><span class="n">4</span><span>Good internet connectivity</span></div></div><div class="cta">Proceed</div><div class="cta ghost">I will do it later</div></div><div class="credit">Credit provided by <b>● Bank</b></div>`),
+ agentCall:()=>ph(`<div style="position:absolute;inset:0;background:#0f172a;color:#fff;display:flex;flex-direction:column;"><div style="padding:14px 16px;display:flex;justify-content:space-between;font-size:11px;"><span>Video KYC</span><span style="color:#f87171;font-weight:800;">● LIVE</span></div><div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:70px;">🧑‍💼</div><div style="text-align:center;font-size:13px;font-weight:700;">Agent is verifying your details…</div><div style="text-align:center;font-size:10px;color:#94a3b8;margin:6px 24px 0;">Show your PAN and sign on paper when asked.</div><div style="display:flex;justify-content:center;gap:16px;padding:18px 0 26px;"><span style="width:44px;height:44px;border-radius:50%;background:#334155;display:flex;align-items:center;justify-content:center;">🎤</span><span style="width:44px;height:44px;border-radius:50%;background:#dc2626;display:flex;align-items:center;justify-content:center;">📞</span><span style="width:44px;height:44px;border-radius:50%;background:#334155;display:flex;align-items:center;justify-content:center;">📷</span></div><div style="position:absolute;bottom:86px;right:14px;width:58px;height:78px;border-radius:10px;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:26px;">🙂</div></div>`),
+ auditorReview:()=>ph(`${cohd}<div class="pill-ok">🧑‍⚖️</div><div class="center-txt"><h3>Auditor review</h3><p>Your VKYC recording is under maker-checker review by the bank auditor.</p></div><div class="bar" style="margin-top:20px;"><i style="width:60%"></i></div><div class="credit" style="margin-top:110px;">Credit provided by <b>● Bank</b></div>`),
+ riskRun:()=>proc('📊','Risk categorization…','Assigning your risk tier.','50%'),
+ amlRun:()=>proc('🛡️','AML screening…','Sanctions, PEP & watchlists.','50%'),
+ fraudRun:()=>proc('🔎','Fraud check…','Screening for fraud / mule.','50%'),
+ dedupeRun:()=>proc('🧬','Dedupe check…','Checking duplicates before account creation.','60%'),
+ dedupeFailScr:()=>res('⛔','Duplicate found',"A possible duplicate was found. Sent for manual review.",'Okay',true),
+ hardRejectScr:()=>res('⛔','Video KYC failed',"Your video KYC could not be completed, so the application is terminated. A rejection SMS has been sent.",'Okay',true),
+ auditorRejectScr:()=>res('⛔','Not approved',"The auditor could not approve your video KYC. The application is terminated.",'Okay',true),
+ acctCreateScr:()=>proc('🧾','Creating your account…','Vegapay is creating your customer & credit-line account.','75%'),
+ linkLine:()=>ph(`${cohd}<div class="pill-ok">🔗</div><div class="center-txt"><h3>Link your credit line</h3><p>Link your newly-created credit line to UPI to start paying.</p></div><div style="padding:20px;"><div class="cta">Link credit line</div></div><div class="credit" style="margin-top:80px;">Credit provided by <b>● Bank</b></div>`),
+ pinSetup:()=>ph(`<div class="ph-hd"><span class="bk">←</span><span class="lg2" style="color:#5b21b6;">◈ NPCI · UPI</span></div>
+   <div style="text-align:center;padding-top:8px;font-weight:800;font-size:16px;">Set up your Credit Line PIN</div>
+   <div style="text-align:center;font-size:10.5px;color:#64748b;margin:4px 20px 0;">NPCI Alternate Rails — verify to set your PIN</div>
+   <div class="sheet"><div class="numlist"><div class="li"><span class="n">1</span><span>Enter <b>first 6 digits</b> of your Aadhaar</span></div><div class="li"><span class="n">2</span><span>Enter <b>Aadhaar OTP</b></span></div><div class="li"><span class="n">3</span><span>Enter <b>Bank OTP</b></span></div></div>
+     <div class="field">Aadhaar — first 6 digits</div><div class="field">Aadhaar OTP</div><div class="field">Bank OTP</div>
+     <div style="font-size:11px;font-weight:700;color:#334155;margin:6px 0 4px;">Set your UPI PIN</div><div class="otp"><span></span><span></span><span></span><span></span></div>
+     <div class="cta" style="background:#5b21b6;">Set PIN</div></div>
+   <div style="text-align:center;font-size:9px;color:#94a3b8;padding-bottom:14px;">Powered by NPCI · UPI</div>`),
+ pinSetupFail:()=>res('⛔','PIN setup failed',"We couldn't set your Credit Line PIN. Please try again — a message has been sent to your mobile.",'Retry',true),
+ pinSuccess:()=>ph(`${cohd}<div class="pill-ok">✅</div><div class="center-txt"><h3>PIN setup successful</h3><p>Your credit line is now active on UPI. A confirmation message has been sent to your mobile.</p></div><div style="padding:20px;"><div class="cta">Start using Credit Line</div></div><div class="credit" style="margin-top:70px;">Credit provided by <b>● Bank</b></div>`)
+};
+
+/* ---------------- INTERACTIONS ---------------- */
+let cur=null,carState=null;
+function tabsOf(n){ if(n.screens) return n.screens.map(s=>[s[1],s[2]]); return null; }
+function openScreen(id){const n=byId[id];cur=n;const num=String(n.num);
+  document.getElementById('scrTitle').textContent=(/^\d+$/.test(num)?`Step ${num} · `:'')+n.title;
+  document.getElementById('scrSub').textContent=n.owner;
+  const tabsEl=document.getElementById('scrTabs'),body=document.getElementById('scrBody');
+  if(n.carousel){tabsEl.style.display='none';tabsEl.innerHTML='';carState={s:n.carousel,i:0};
+    body.innerHTML=`<div class="carou"><div id="cphone"></div><div class="cnav"><button onclick="carGo(-1)">‹</button><span class="cdots" id="cdots"></span><button onclick="carGo(1)">›</button></div><div class="ccap" id="ccap"></div></div>`;
+    renderCar();document.getElementById('scrOv').classList.add('open');return;}
+  const tabs=tabsOf(n);cur._tabs=tabs;
+  if(tabs&&tabs.length>1){tabsEl.style.display='flex';tabsEl.innerHTML=tabs.map((t,i)=>`<button class="tab${i===0?' on':''}" onclick="setTab(${i},this)">${t[0]}</button>`).join('');body.innerHTML=M[tabs[0][1]]();}
+  else{tabsEl.style.display='none';tabsEl.innerHTML='';body.innerHTML=M[(tabs?tabs[0][1]:n.mockup)]();}
+  document.getElementById('scrOv').classList.add('open');}
+function renderCar(){const s=carState.s[carState.i];document.getElementById('cphone').innerHTML=M[s.mock]();
+  document.getElementById('ccap').innerHTML=`<div class="ccode">${s.code} · ${s.name}</div><div class="croute">${s.route}</div><div class="cnote">${s.note}</div><code>${s.req}\n${s.resp}</code>`;
+  document.getElementById('cdots').innerHTML=carState.s.map((_,i)=>`<span class="${i===carState.i?'on':''}"></span>`).join('');}
+function carGo(d){carState.i=(carState.i+d+carState.s.length)%carState.s.length;renderCar();}
+function setTab(i,btn){document.getElementById('scrBody').innerHTML=M[cur._tabs[i][1]]();btn.parentNode.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');}
+function openApi(id){const a=byId[id].api;document.getElementById('apiBody').innerHTML=`
+   <div class="row"><label>Trigger</label><div class="val">${a.trig}</div></div>
+   <div class="row"><label>Requester → Provider</label><div class="val route">${a.route}</div></div>
+   <div class="row"><label>Request</label><code>${a.req}</code></div>
+   <div class="row"><label>Response</label><code>${a.resp}</code></div>`;
+  document.getElementById('apiOv').classList.add('open');}
+function closeAll(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeAll();}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();});
+
+const stage=document.getElementById('stage'),board=document.getElementById('board');
+let z=0.5;
+function applyZoom(){canvas.style.transform='scale('+z+')';stage.style.width=(maxX*z)+'px';stage.style.height=(maxY*z)+'px';document.getElementById('zlabel').textContent=Math.round(z*100)+'%';}
+function zoomBy(d){z=Math.min(1.6,Math.max(0.12,+(z+d).toFixed(2)));applyZoom();}
+function zoomReset(){z=1;applyZoom();}
+function zoomFit(){const bw=board.clientWidth-24;z=Math.max(0.12,Math.min(1,+(bw/maxX).toFixed(3)));applyZoom();}
+board.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();zoomBy(e.deltaY>0?-0.1:0.1);}},{passive:false});
+zoomFit();
+</script>
+</body>
+</html>
