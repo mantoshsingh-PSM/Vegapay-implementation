@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vegapay LMS | Product Construct</title>
+<style>
+  :root{
+    --primary:#061F62;
+    --secondary:#FF912C;
+    --bg:#f4f6fb;
+    --card:#ffffff;
+    --line:#d9dfeb;
+    --soft:#eef2f8;
+    --muted:#6b7280;
+    --ink:#172033;
+    --ok:#1f7a45;
+    --ok-bg:#eaf7ef;
+    --no:#8a1c1c;
+    --no-bg:#fbe9e9;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial, Helvetica, sans-serif;background:var(--bg);color:var(--ink)}
+  [hidden]{display:none!important}
+
+  /* ---------- Top bar ---------- */
+  .topbar{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .brand-strip{height:6px;background:var(--secondary)}
+  .toolbar{max-width:1180px;margin:auto;padding:10px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .toolbar .title{font-weight:700;color:var(--primary);margin-right:auto;display:flex;align-items:center;gap:10px}
+  .save-state{font-size:12px;font-weight:400;color:var(--muted)}
+  button{border:0;border-radius:8px;padding:9px 13px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+  .primary{background:var(--primary);color:#fff}
+  .secondary{background:var(--secondary);color:#fff}
+  .ghost{background:var(--soft);color:var(--primary)}
+  .danger{background:var(--no-bg);color:var(--no)}
+  .mini{padding:6px 9px;font-size:12px}
+
+  .wrap{max-width:1180px;margin:22px auto;padding:0 18px 50px}
+  .doc{background:#fff;border-radius:14px;box-shadow:0 8px 30px rgba(13,31,70,.08);overflow:hidden}
+
+  /* ---------- Header ---------- */
+  .doc-header{padding:34px 42px 26px;border-top:10px solid var(--secondary)}
+  .doc-header h1{margin:0;color:var(--primary);font-size:30px}
+  .doc-header .sub{margin:7px 0 0;color:var(--muted)}
+  .meta-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
+  input,textarea,select{width:100%;border:1px solid var(--line);border-radius:7px;padding:8px 9px;font:inherit;background:#fff;color:var(--ink)}
+  textarea{min-height:70px;resize:vertical}
+  ::placeholder{font-size:calc(1em - 2px);color:#9aa3b2}
+  input:focus,textarea:focus,select:focus,[contenteditable]:focus{outline:2px solid rgba(6,31,98,.15);border-color:var(--primary)}
+  input[type=checkbox],input[type=radio]{width:auto;margin:0;accent-color:var(--primary)}
+
+  .section{padding:0 42px 30px}
+  .section > h2,.module-head h2{color:var(--primary);font-size:20px;margin:0}
+  .section > h2{margin:20px 0 12px;padding-top:18px;border-top:1px solid #eef1f6}
+  .section p{line-height:1.55}
+
+  .about{background:#f7f9fd;border-left:4px solid var(--primary);border-radius:0 10px 10px 0;padding:16px 18px;margin:0}
+  .about[contenteditable]{cursor:text}
+  .edit-hint{font-size:12px;color:var(--muted);margin:6px 0 0}
+
+  /* ---------- Tables ---------- */
+  table{width:100%;border-collapse:collapse;margin:10px 0 14px;table-layout:fixed}
+  th{background:var(--primary);color:#fff;text-align:left;padding:10px 9px;border:1px solid var(--primary);font-size:13px}
+  td{border:1px solid var(--line);padding:6px;vertical-align:middle;background:#fff}
+  tbody tr:nth-child(even) td{background:#fafbfe}
+  td input,td textarea{border:0;background:transparent;padding:5px}
+  td.param input{font-weight:700;color:var(--primary)}
+  #productTable td input{font-size:calc(1em - 2px)}
+  .col-action{width:56px;text-align:center}
+  .inline-actions{display:flex;gap:8px;margin:4px 0 8px}
+  .table-scroll{overflow-x:auto}
+
+  /* ---------- Collapsible modules ---------- */
+  .module{border:1px solid var(--line);border-radius:12px;margin:18px 0;overflow:hidden}
+  .module-head{display:flex;align-items:center;gap:14px;padding:16px 18px;background:#f7f9fd;cursor:pointer;user-select:none;width:100%;text-align:left;border-radius:0}
+  .module-head:hover{background:#eef2fa}
+  .module-head .desc{font-size:13px;color:var(--muted);font-weight:400;margin-top:3px}
+  .toggle{flex:none;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:20px;line-height:1;transition:transform .15s}
+  .module.open .toggle{transform:rotate(45deg);background:var(--secondary)}
+  .module-body{display:none;padding:6px 18px 18px}
+  .module.open .module-body{display:block}
+
+  .submodule{border:1px solid var(--line);border-radius:10px;margin:14px 0;background:#fff}
+  .submodule.is-yes{border-color:#b9dfc8}
+  .submodule.is-no{background:#fbfbfc}
+  .sub-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;padding:14px 16px}
+  .sub-head h3{margin:0 0 4px;color:var(--secondary);font-size:17px}
+  .sub-head p{margin:0;font-size:14px;color:#3a4459}
+  .sub-body{border-top:1px dashed var(--line);padding:14px 16px 16px}
+
+  /* Applicable / Not applicable pills */
+  .applic{flex:none;display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:#fff}
+  .applic label{display:flex;align-items:center;gap:6px;padding:7px 12px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .applic label + label{border-left:1px solid var(--line)}
+  .applic input{position:absolute;opacity:0;pointer-events:none}
+  .applic label.yes:has(input:checked){background:var(--ok-bg);color:var(--ok)}
+  .applic label.no:has(input:checked){background:var(--no-bg);color:var(--no)}
+  .applic label:has(input:focus-visible){outline:2px solid var(--primary);outline-offset:-2px}
+
+  /* Account state flow */
+  .flow{display:flex;align-items:stretch;gap:0;margin:4px 0 16px;flex-wrap:wrap}
+  .state{flex:1 1 160px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+  .state b{display:inline-block;font-family:"SFMono-Regular",Consolas,monospace;font-size:13px;padding:3px 8px;border-radius:6px;background:var(--soft);color:var(--primary);margin-bottom:6px}
+  .state.active b{background:var(--ok-bg);color:var(--ok)}
+  .state span{display:block;font-size:13px;color:#3a4459;line-height:1.45}
+  .arrow{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 8px;font-size:11px;color:var(--muted);text-align:center;max-width:120px}
+  .arrow::before{content:"→";font-size:22px;color:var(--secondary);line-height:1}
+
+  .modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:8px 0 12px}
+  .mode{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;background:#fff}
+  .mode:has(input:checked){border-color:var(--primary);background:#f5f8ff}
+  .mode input{margin-top:3px}
+  .mode strong{display:block;color:var(--primary);font-size:14px;margin-bottom:4px}
+  .mode span{font-size:13px;color:#3a4459;line-height:1.45}
+  .label-sm{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 4px}
+
+  .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+
+  /* ---------- Billing ---------- */
+  .param-row{display:grid;grid-template-columns:240px 1fr;gap:16px;align-items:start;padding:14px 0;border-bottom:1px solid #eef1f6}
+  .param-row:last-of-type{border-bottom:0}
+  .param-row > .k{font-weight:700;color:var(--primary);padding-top:8px}
+  .param-row > .k small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:3px}
+  .seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg label{display:flex;align-items:center;gap:7px;padding:9px 14px;font-size:14px;cursor:pointer}
+  .seg label + label{border-left:1px solid var(--line)}
+  .seg input{position:absolute;opacity:0;pointer-events:none}
+  .seg label:has(input:checked){background:var(--primary);color:#fff;font-weight:700}
+  .seg label:has(input:focus-visible){outline:2px solid var(--secondary);outline-offset:-2px}
+  .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .days{display:flex;align-items:center;gap:8px}
+  .days input{width:90px}
+
+  .picker-wrap{position:relative;display:inline-block}
+  .picker-btn{display:flex;align-items:center;gap:10px;min-width:260px;justify-content:space-between;background:#fff;border:1px solid var(--line);color:var(--ink);font-weight:400;font-size:14px;padding:9px 12px}
+  .picker-btn::after{content:"▾";color:var(--muted)}
+  .picker{position:absolute;z-index:40;top:calc(100% + 6px);left:0;width:320px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 34px rgba(13,31,70,.18);padding:14px}
+  .picker-head{font-weight:700;color:var(--primary);font-size:14px}
+  .picker-hint{font-size:12px;color:var(--muted);margin:3px 0 10px}
+  .day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .day-grid button{padding:0;height:36px;border-radius:8px;background:var(--soft);color:var(--ink);font-weight:700;font-size:13px;position:relative}
+  .day-grid button:hover{background:#dfe6f3}
+  .day-grid button.sel{background:var(--primary);color:#fff}
+  .day-grid button.late::after{content:"";position:absolute;top:4px;right:4px;width:5px;height:5px;border-radius:50%;background:var(--secondary)}
+  .picker-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+  .picker-opts button{background:#fff;border:1px solid var(--line);color:var(--primary)}
+  .picker-opts button.sel{background:var(--secondary);border-color:var(--secondary);color:#fff}
+  .picker-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:var(--muted)}
+
+  .formula{background:#f7f9fd;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.7;margin-top:14px}
+  .formula code{font-family:"SFMono-Regular",Consolas,monospace;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+  .result{margin-top:12px;padding:14px 16px;border-radius:10px;background:#fff4ea;border:1px solid #ffd3a8}
+  .result .big{font-size:18px;font-weight:700;color:var(--primary)}
+  .result .big em{font-style:normal;color:#c25e00}
+
+  .empty{padding:16px;text-align:center;color:var(--muted);font-size:14px}
+
+  /* ---------- Shared bits for modules 5–10 ---------- */
+  .intro{font-size:14px;color:#3a4459;margin:8px 0 4px;line-height:1.5}
+  .head-meta{margin-left:auto;flex:none;font-size:12px;font-weight:700;color:var(--primary);background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 10px;white-space:nowrap}
+  .head-meta:empty{display:none}
+  .seg-sm{flex-wrap:nowrap;flex:none}
+  .seg-sm label{padding:5px 12px;font-size:13px}
+  #delqTable,#smsTable,#glTable,#emailTable{min-width:680px}
+  .types{font-size:12px;color:var(--muted);margin-top:2px}
+  .field-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:12px}
+  .field-row > .field{flex:0 1 220px}
+  .field-row > .field.grow{flex:1 1 320px}
+  .affix{display:flex;align-items:stretch}
+  .affix input{border-radius:7px 0 0 7px;min-width:0}
+  .affix select{width:auto;border-radius:0 7px 7px 0;border-left:0;background:var(--soft);font-size:13px}
+  .affix > span{border:1px solid var(--line);border-left:0;border-radius:0 7px 7px 0;background:var(--soft);padding:8px 10px;font-size:13px;color:var(--muted);white-space:nowrap;display:flex;align-items:center}
+  .affix > span.pre{order:-1;border-left:1px solid var(--line);border-right:0;border-radius:7px 0 0 7px}
+  .affix > span.pre + input{border-radius:0 7px 7px 0}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .chip{position:relative;display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:13px;font-weight:700;color:var(--primary);cursor:pointer;background:#fff}
+  .chip:has(input:checked){background:var(--primary);border-color:var(--primary);color:#fff}
+  .chip:has(input:focus-visible){outline:2px solid var(--secondary);outline-offset:1px}
+  .chip input{position:absolute;opacity:0;pointer-events:none}
+  .chips .other{width:200px;padding:6px 10px;font-size:13px}
+  .check-line{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:10px;cursor:pointer}
+  .warn{font-size:12px;color:#9a5b00;background:#fff6df;border:1px solid #f1dca8;border-radius:7px;padding:7px 10px;margin:4px 0 8px}
+  .cohort-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:10px}
+  .cohort{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fff}
+  .cohort .field{margin-top:9px}
+  .cohort .field:first-child{margin-top:0}
+  .cohort .name{font-weight:700;color:var(--primary)}
+  .opts{display:flex;flex-direction:column;gap:8px}
+  .opt{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+  .dpd{font-weight:700;color:var(--primary);white-space:nowrap}
+  td textarea{min-height:54px}
+  .repay td select{border:0;background:transparent;padding:5px;font-size:calc(1em - 2px)}
+
+  .footer{padding:18px 42px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:20px}
+  .print-only{display:none}
+
+  @media (max-width:860px){
+    .meta-grid{grid-template-columns:1fr 1fr}
+    .modes,.grid-3{grid-template-columns:1fr}
+    .grid-2{grid-template-columns:1fr}
+    .param-row{grid-template-columns:1fr;gap:8px}
+    .param-row > .k{padding-top:0}
+    .section,.doc-header,.footer{padding-left:16px;padding-right:16px}
+    .module-body{padding:6px 12px 14px}
+    .sub-head{flex-direction:column}
+    .toolbar .title{width:100%}
+    .picker-btn{min-width:0;width:100%}
+    .picker-wrap{display:block}
+    .picker{width:min(320px,calc(100vw - 48px))}
+    .arrow{max-width:none;width:100%;padding:6px 0}
+    .arrow::before{content:"↓"}
+  }
+
+  @media print{
+    @page{size:A4;margin:14mm 12mm 16mm}
+    body{background:#fff}
+    .topbar,.note,.inline-actions,.no-print,.picker,.edit-hint{display:none!important}
+    .wrap{max-width:none;margin:0;padding:0}
+    .doc{box-shadow:none;border-radius:0}
+    .doc-header{padding:18px 0 16px;border-top:8px solid var(--secondary)}
+    .section{padding:0 0 16px}
+    .module{border:0;border-radius:0}
+    .module-head{background:none;padding:14px 0 6px;border-top:1px solid #eef1f6}
+    .module-head .toggle{display:none}
+    .module-body{display:block!important;padding:0}
+    .submodule{break-inside:avoid}
+    h2,h3{break-after:avoid}
+    tr{break-inside:avoid}
+    thead{display:table-header-group}
+    input,textarea,select{border:0!important;padding:0!important;background:transparent!important;appearance:none;-webkit-appearance:none;color:#000}
+    .applic label:not(:has(input:checked)),.seg label:not(:has(input:checked)){display:none}
+    .applic,.seg{border:0}
+    .mode:not(:has(input:checked)),.chip:not(:has(input:checked)){display:none}
+    .head-meta{display:none}
+    .picker-btn{border:0;padding:0;min-width:0}
+    .picker-btn::after{display:none}
+    .footer{padding:12px 0 0}
+    .print-only{display:block}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand-strip"></div>
+  <div class="toolbar">
+    <div class="title"><span id="barTitle">Product Construct</span><span class="save-state" id="saveState"></span></div>
+    <button class="ghost" type="button" id="expandBtn" onclick="expandAll()">Expand all</button>
+    <button class="ghost" type="button" onclick="exportJSON()">Export JSON</button>
+    <button class="ghost" type="button" onclick="document.getElementById('importFile').click()">Import JSON</button>
+    <input type="file" id="importFile" accept="application/json,.json" hidden onchange="importJSON(this)">
+    <button class="ghost" type="button" onclick="downloadHTML()">Download Filled HTML</button>
+    <button class="secondary" type="button" onclick="window.print()">Generate PDF</button>
+    <button class="danger" type="button" onclick="resetForm()">Reset</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="doc" id="documentArea">
+    <!-- ================= Header ================= -->
+    <div class="doc-header">
+      <h1 id="docTitle">Product Construct</h1>
+      <p class="sub">Vegapay LMS · Bank / Partner Program Configuration</p>
+      <div class="meta-grid">
+        <div class="field"><label for="m-bank">Bank / Lender Name</label><input id="m-bank" data-key="meta.bank" placeholder="e.g. ABC Bank"></div>
+        <div class="field"><label for="m-partner">Partner / Client</label><input id="m-partner" data-key="meta.partner" placeholder="e.g. XYZ Fintech"></div>
+        <div class="field"><label for="m-program">Program Name</label><input id="m-program" data-key="meta.program" placeholder="e.g. Credit Line on UPI"></div>
+        <div class="field"><label for="m-version">Version</label><input id="m-version" data-key="meta.version" value="1.0"></div>
+        <div class="field"><label for="m-prep">Prepared By</label><input id="m-prep" data-key="meta.preparedBy" placeholder="Vegapay owner"></div>
+        <div class="field"><label for="m-rev">Bank / Partner Reviewer</label><input id="m-rev" data-key="meta.reviewer" placeholder="Reviewer name"></div>
+        <div class="field"><label for="m-date">Date</label><input id="m-date" type="date" data-key="meta.date"></div>
+        <div class="field"><label for="m-status">Document Status</label>
+          <select id="m-status" data-key="meta.status"><option>Draft</option><option>Shared with Bank</option><option>Under Review</option><option>Approved</option><option>Approved with Comments</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= About ================= -->
+    <div class="section">
+      <h2>1. About Vegapay LMS</h2>
+      <p class="about" contenteditable="true" data-key="about.text" spellcheck="true">Vegapay LMS is a cloud-native, API-first credit lifecycle and loan management platform that enables banks, NBFCs, and their fintech partners to launch and operate credit products, including credit cards, credit lines on UPI, and EMI and loan products. The platform manages the complete account lifecycle, covering customer onboarding and account creation, limit management, real-time transaction authorization, billing and statement generation, interest, fee, and tax computation, repayments, delinquency and collections, and general ledger accounting and regulatory reporting. Every program is driven by configuration, so each bank or partner can define its own product construct, billing framework, fees, and policies, and go live quickly within the bank's risk and compliance framework.</p>
+      <p class="edit-hint">Click the paragraph to edit it.</p>
+
+      <!-- ================= Product Construct ================= -->
+      <h2>2. Product Construct</h2>
+      <table id="productTable">
+        <thead><tr><th style="width:36%">Parameter</th><th>Value</th><th class="col-action no-print"></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="inline-actions">
+        <button class="ghost mini" type="button" onclick="addRow('product')">+ Add Parameter</button>
+      </div>
+
+      <!-- ================= Account Management ================= -->
+      <section class="module" id="mod-account">
+        <button class="module-head" type="button" aria-expanded="false" onclick="toggleModule(this)">
+          <span class="toggle" aria-hidden="true">+</span>
+          <span><h2>3. Account Management Module</h2><span class="desc">Account activation lifecycle and inactivity handling</span></span>
+        </button>
+        <div class="module-body">
+
+          <!-- 3.1 Account Activation -->
+          <div class="submodule" data-app="acct.activation">
+            <div class="sub-head">
+              <div>
+                <h3>3.1 Account Activation</h3>
+                <p>Every account is created in a <b>CREATED</b> state. It moves to <b>NEW</b> as soon as an activation intent is received from the customer, and to <b>ACTIVE</b> once the customer performs their first transaction.</p>
+              </div>
+              <div class="applic" role="radiogroup" aria-label="Account Activation applicability">
+                <label class="yes"><input type="radio" name="acct.activation" data-key="acct.activation" value="yes">Applicable</label>
+                <label class="no"><input type="radio" name="acct.activation" data-key="acct.activation" value="no">Not applicable</label>
+              </div>
+            </div>
+            <div class="sub-body" data-show-when="acct.activation=yes" hidden>
+              <div class="label-sm">Account state lifecycle</div>
+              <div class="flow">
+                <div class="state"><b>CREATED</b><span>Account is set up on Vegapay LMS after onboarding / BRE approval. Not yet usable for transactions.</span></div>
+                <div class="arrow">Intent received from customer</div>
+                <div class="state"><b>NEW</b><span>Customer has shown intent to use the account via one of the activation modes below.</span></div>
+                <div class="arrow">First transaction</div>
+                <div class="state active"><b>ACTIVE</b><span>Customer has completed their first successful transaction on the account.</span></div>
+              </div>
+
+              <div class="label-sm">Modes of activation (select all that apply)</div>
+              <div class="modes">
+                <label class="mode"><input type="checkbox" data-key="acct.mode.api"><div><strong>1. Activate Account API</strong><span>The partner app calls the Vegapay Activate Account API when the customer chooses to activate the account.</span></div></label>
+                <label class="mode"><input type="checkbox" data-key="acct.mode.consent"><div><strong>2. Via Consent</strong><span>The customer gives explicit consent (e.g. OTP or in-app acceptance), which is recorded as the activation intent.</span></div></label>
+                <label class="mode"><input type="checkbox" data-key="acct.mode.listAccount"><div><strong>3. Via List Account</strong><span>Intent is recorded when the customer discovers and links the account in a UPI / TPAP app through a List Account request.</span></div></label>
+              </div>
+              <div class="field"><label for="acct-notes">Activation notes / deviations</label><textarea id="acct-notes" data-key="acct.activation.notes" placeholder="e.g. Primary mode, fallback mode, customer communication on activation"></textarea></div>
+            </div>
+          </div>
+
+          <!-- 3.2 Inactivity -->
+          <div class="submodule" data-app="acct.inactivity">
+            <div class="sub-head">
+              <div>
+                <h3>3.2 37-Day Inactivity Closure</h3>
+                <p>If an account is not activated within 30 days of creation, the customer is contacted for consent to activate it. If no consent is received, the account is closed within the next 7 working days at no cost to the customer.</p>
+              </div>
+              <div class="applic" role="radiogroup" aria-label="37-day inactivity applicability">
+                <label class="yes"><input type="radio" name="acct.inactivity" data-key="acct.inactivity" value="yes">Applicable</label>
+                <label class="no"><input type="radio" name="acct.inactivity" data-key="acct.inactivity" value="no">Not applicable</label>
+              </div>
+            </div>
+            <div class="sub-body" data-show-when="acct.inactivity=yes" hidden>
+              <div class="grid-3">
+                <div class="field"><label for="ina-days">Activation window (days from creation)</label><input id="ina-days" type="number" min="1" data-key="acct.inactivity.window" value="30"></div>
+                <div class="field"><label for="ina-closure">Closure window after consent request</label><input id="ina-closure" data-key="acct.inactivity.closure" value="7 working days"></div>
+                <div class="field"><label for="ina-action">Action if no consent</label>
+                  <select id="ina-action" data-key="acct.inactivity.action"><option>Close account</option><option>Block account</option><option>Notify only</option></select>
+                </div>
+              </div>
+              <div class="field" style="margin-top:12px"><label for="ina-notes">Notes</label><textarea id="ina-notes" data-key="acct.inactivity.notes" placeholder="e.g. Reminder communications, consent channel, exceptions"></textarea></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= Billing Framework ================= -->
+      <section class="module" id="mod-billing">
+        <button class="module-head" type="button" aria-expanded="false" onclick="toggleModule(this)">
+          <span class="toggle" aria-hidden="true">+</span>
+          <span><h2>4. Billing Framework</h2><span class="desc">Billing cycle, bill dates, interest-free and grace periods, late fee trigger</span></span>
+        </button>
+        <div class="module-body">
+
+          <div class="param-row">
+            <div class="k">4.1 Billing Cycle<small>How bill dates are set for the program</small></div>
+            <div class="seg" role="radiogroup" aria-label="Billing cycle">
+              <label><input type="radio" name="bill.cycleType" data-key="bill.cycleType" value="single" checked>Fixed – Single</label>
+              <label><input type="radio" name="bill.cycleType" data-key="bill.cycleType" value="multiple">Fixed – Multiple</label>
+              <label><input type="radio" name="bill.cycleType" data-key="bill.cycleType" value="monthend">Month End</label>
+            </div>
+          </div>
+
+          <div class="param-row">
+            <div class="k">4.2 Billing Date(s)<small>Bill date = bill cycle end</small></div>
+            <div>
+              <div class="picker-wrap">
+                <button type="button" class="picker-btn" id="pickerBtn" aria-haspopup="dialog" aria-expanded="false" onclick="togglePicker(event)"><span id="pickerLabel">Select date</span></button>
+                <div class="picker" id="picker" role="dialog" aria-label="Select billing date" hidden>
+                  <div class="picker-head">Select billing date</div>
+                  <div class="picker-hint" id="pickerHint">Pick one day of the month.</div>
+                  <div class="day-grid" id="dayGrid"></div>
+                  <div class="picker-opts">
+                    <button type="button" id="optMonthEnd" onclick="pickMonthEnd()">Month End</button>
+                    <button type="button" id="optMultiple" onclick="pickMultiple()">Multiple Dates</button>
+                  </div>
+                  <div class="picker-foot"><span><span style="color:var(--secondary)">●</span> 29–31 fall back to month end in shorter months</span><button type="button" class="primary mini" onclick="closePicker()">Done</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="param-row">
+            <div class="k">4.3 Bill Cycle<small>Derived from the bill date</small></div>
+            <div id="cycleText" style="padding-top:8px;line-height:1.6"></div>
+          </div>
+
+          <div class="param-row">
+            <div class="k">4.4 Interest-Free Period<small>Days after bill date up to the Payment Due Date</small></div>
+            <div class="inline">
+              <div class="seg" role="radiogroup" aria-label="Interest-free period applicable">
+                <label><input type="radio" name="bill.ifp" data-key="bill.ifp" value="yes" checked>Applicable</label>
+                <label><input type="radio" name="bill.ifp" data-key="bill.ifp" value="no">Not applicable</label>
+              </div>
+              <div class="days" data-show-when="bill.ifp=yes"><input type="number" min="0" max="60" data-key="bill.ifpDays" value="20" aria-label="Interest-free days"><span>days</span></div>
+            </div>
+          </div>
+
+          <div class="param-row">
+            <div class="k">4.5 Grace Period<small>Additional days after the Payment Due Date</small></div>
+            <div class="inline">
+              <div class="seg" role="radiogroup" aria-label="Grace period applicable">
+                <label><input type="radio" name="bill.grace" data-key="bill.grace" value="yes" checked>Applicable</label>
+                <label><input type="radio" name="bill.grace" data-key="bill.grace" value="no">Not applicable</label>
+              </div>
+              <div class="days" data-show-when="bill.grace=yes"><input type="number" min="0" max="30" data-key="bill.graceDays" value="3" aria-label="Grace days"><span>days</span></div>
+            </div>
+          </div>
+
+          <div class="param-row">
+            <div class="k">4.6 Late Fee Trigger<small>Calculated automatically</small></div>
+            <div>
+              <div class="result" id="lateResult"></div>
+              <div class="formula" id="formula"></div>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:14px"><label for="bill-notes">Billing notes / deviations</label><textarea id="bill-notes" data-key="bill.notes" placeholder="e.g. Mandate presentation dates, holiday handling, bill generation time"></textarea></div>
+        </div>
+      </section>
+
+      <!-- ================= Charges ================= -->
+      <section class="module" id="mod-charges">
+        <button class="module-head" type="button" aria-expanded="false" onclick="toggleModule(this)">
+          <span class="toggle" aria-hidden="true">+</span>
+          <span><h2>5. Charges Framework</h2><span class="desc">Fees and charges: whether each applies, how it's calculated, and its value</span></span>
+          <span class="head-meta" id="chargeCount"></span>
+        </button>
+        <div class="module-body">
+          <p class="intro">Mark each charge <b>Applicable</b> or <b>Not applicable</b>. For applicable charges, choose how it is calculated (only the methods allowed for that charge are offered) and enter the value.</p>
+          <div id="chargeList"></div>
+        </div>
+      </section>
+
+      <!-- ================= Loan Module ================= -->
+      <section class="module" id="mod-loan">
+        <button class="module-head" type="button" aria-expanded="false" onclick="toggleModule(this)">
+          <span class="toggle" aria-hidden="true">+</span>
+          <span><h2>6. Loan Module</h2><span class="desc">Statement to EMI, Bill to EMI and Transaction to EMI</span></span>
+        </button>
+        <div class="module-body">
+
+          <div class="submodule" data-app="loan.s2e">
+            <div class="sub-head">
+              <div><h3>6.1 Statement to EMI</h3><p>A loan is created automatically when the statement is generated, if the minimum due is at or above the threshold below. The customer's tenure preference is captured at account creation and can be changed later.</p></div>
+              <div class="applic" data-applic="loan.s2e"></div>
+            </div>
+            <div class="sub-body" data-show-when="loan.s2e=yes" hidden>
+              <div class="field-row">
+                <div class="field"><label>Minimum due for loan creation</label><div class="affix"><span class="pre">₹</span><input type="number" min="0" data-key="loan.s2e.minDue" placeholder="e.g. 2,500"></div></div>
+                <div class="field"><label>Rate of interest</label><div class="affix"><input type="number" min="0" step="0.01" data-key="loan.s2e.roi" placeholder="e.g. 36"><span>% p.a.</span></div></div>
+              </div>
+              <div class="label-sm">Tenure options (months)</div>
+              <div class="chips" data-tenure="loan.s2e.tenure"></div>
+              <label class="check-line"><input type="checkbox" data-key="loan.s2e.tenureAtCreation" checked> Tenure preference captured at account creation</label>
+              <label class="check-line"><input type="checkbox" data-key="loan.s2e.tenureUpdatable" checked> Customer can update their tenure preference</label>
+              <div class="field" style="margin-top:12px"><label>Notes</label><textarea data-key="loan.s2e.notes" placeholder="e.g. Loan created on the minimum due or the total due, opt-out window"></textarea></div>
+            </div>
+          </div>
+
+          <div class="submodule" data-app="loan.b2e">
+            <div class="sub-head">
+              <div><h3>6.2 Bill to EMI</h3><p>After the bill is generated, the customer can convert the entire bill into a loan. The customer selects the tenure when the loan is created.</p></div>
+              <div class="applic" data-applic="loan.b2e"></div>
+            </div>
+            <div class="sub-body" data-show-when="loan.b2e=yes" hidden>
+              <div class="field"><label>Description</label><textarea data-key="loan.b2e.desc" placeholder="e.g. Conversion window, eligible bill amount, channel through which the customer converts"></textarea></div>
+              <div class="field-row">
+                <div class="field"><label>Processing fee</label><div class="affix"><input type="number" min="0" step="0.01" data-key="loan.b2e.pf"><select data-key="loan.b2e.pfUnit" aria-label="Processing fee unit"><option value="pct">% of loan</option><option value="flat">₹ flat</option></select></div></div>
+                <div class="field"><label>Rate of interest</label><div class="affix"><input type="number" min="0" step="0.01" data-key="loan.b2e.roi"><span>% p.a.</span></div></div>
+              </div>
+              <div class="label-sm">Tenure options offered at loan creation (months)</div>
+              <div class="chips" data-tenure="loan.b2e.tenure"></div>
+            </div>
+          </div>
+
+          <div class="submodule" data-app="loan.t2e">
+            <div class="sub-head">
+              <div><h3>6.3 Transaction to EMI</h3><p>Once a transaction is settled, the customer can convert it into a loan, within the minimum and maximum amounts below.</p></div>
+              <div class="applic" data-applic="loan.t2e"></div>
+            </div>
+            <div class="sub-body" data-show-when="loan.t2e=yes" hidden>
+              <div class="field-row">
+                <div class="field"><label>Minimum transaction amount</label><div class="affix"><span class="pre">₹</span><input type="number" min="0" data-key="loan.t2e.min"></div></div>
+                <div class="field"><label>Maximum loan amount</label><div class="affix"><input type="number" min="0" max="100" data-key="loan.t2e.maxPct"><span>% of credit limit</span></div></div>
+                <div class="field"><label>Processing fee</label><div class="affix"><input type="number" min="0" step="0.01" data-key="loan.t2e.pf"><select data-key="loan.t2e.pfUnit" aria-label="Processing fee unit"><option value="pct">% of loan</option><option value="flat">₹ flat</option></select></div></div>
+                <div class="field"><label>Rate of interest</label><div class="affix"><input type="number" min="0" step="0.01" data-key="loan.t2e.roi"><span>% p.a.</span></div></div>
+              </div>
+              <div class="label-sm">Tenure options (months)</div>
+              <div class="chips" data-tenure="loan.t2e.tenure"></div>
+              <div class="field" style="margin-top:12px"><label>Notes</label><textarea data-key="loan.t2e.notes" placeholder="e.g. Conversion window after settlement, excluded transaction types"></textarea></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= Cohort ================= -->
+      <section class="module" id="mod-cohort">
+        <button class="module-head" type="button" aria-expanded="false" onclick="toggleModule(this)">
+          <span class="toggle" aria-hidden="true">+</span>
+          <span><h2>7. Cohort</h2><span class="desc">Pricing for customer groups set by risk policy</span></span>
+        </button>
+        <div class="module-body">
+          <p class="intro">Customers can be grouped into cohorts based on the bank's risk policies. Each cohort has its own pricing, which is applied at loan creation and at billing.</p>
+          <div class="cohort-grid" id="cohortGrid"></div>
+          <div class="inline-actions" style="margin-top:12px"><button class="ghost mini" type="button" onclick="addRow('cohorts')">+ Add Cohort</button></div>
+        </div>
+      </section>
+
+      <!-- ================= Delinquency ================= -->
+      <section class="module" id="mod-delq">
+        <button class="module-head" type="button" aria-expanded="false" onclick="toggleModule(this)">
+          <span class="toggle" aria-hidden="true">+</span>
+          <span><h2>8. Delinquency Framework</h2><span class="desc">What happens to the account at each days-past-due (DPD) stage</span></span>
+        </button>
+        <div class="module-body">
+          <div class="table-scroll">
+            <table id="delqTable">
+              <thead><tr><th style="width:14%">DPD Bucket</th><th style="width:22%">Account Action</th><th style="width:36%">Configuration</th><th>Notes</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= Communications ================= -->
+      <section class="module" id="mod-comms">
+        <button class="module-head" type="button" aria-expanded="false" onclick="toggleModule(this)">
+          <span class="toggle" aria-hidden="true">+</span>
+          <span><h2>9. Communications</h2><span class="desc">SMS templates and email / letter templates</span></span>
+        </button>
+        <div class="module-body">
+          <div class="submodule" data-app="comm.sms">
+            <div class="sub-head">
+              <div><h3>9.1 SMS</h3><p>List each DLT-registered SMS template with its content and what each variable holds.</p></div>
+              <div class="applic" data-applic="comm.sms"></div>
+            </div>
+            <div class="sub-body" data-show-when="comm.sms=yes" hidden>
+              <div class="table-scroll">
+                <table id="smsTable">
+                  <thead><tr><th style="width:20%">Template ID</th><th style="width:44%">SMS Content</th><th>Variable Description</th><th class="col-action no-print"></th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="inline-actions"><button class="ghost mini" type="button" onclick="addRow('sms')">+ Add SMS Template</button></div>
+            </div>
+          </div>
+
+          <div class="submodule" data-app="comm.email">
+            <div class="sub-head">
+              <div><h3>9.2 Email</h3><p>For each email, letter and notification, mark whether it applies and, if it does, whether the template has been shared.</p></div>
+              <div class="applic" data-applic="comm.email"></div>
+            </div>
+            <div class="sub-body" data-show-when="comm.email=yes" hidden>
+              <div class="table-scroll"><table id="emailTable">
+                <thead><tr><th>Template</th><th style="width:170px">Applicable</th><th style="width:170px">Template Status</th></tr></thead>
+                <tbody></tbody>
+              </table></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= GL Codes ================= -->
+      <section class="module" id="mod-gl">
+        <button class="module-head" type="button" aria-expanded="false" onclick="toggleModule(this)">
+          <span class="toggle" aria-hidden="true">+</span>
+          <span><h2>10. GL Codes</h2><span class="desc">GL code and asset class for each standard accounting event</span></span>
+        </button>
+        <div class="module-body">
+          <p class="intro">Enter the bank's GL code and asset class for each accounting event. Add rows for any bank-specific events.</p>
+          <div class="table-scroll">
+            <table id="glTable">
+              <thead><tr><th style="width:42%">Accounting Event</th><th>GL Code</th><th>Asset Class</th><th class="col-action no-print"></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <datalist id="assetClassList"><option value="Asset"><option value="Liability"><option value="Income"><option value="Expense"><option value="Suspense"></datalist>
+          <div class="inline-actions"><button class="ghost mini" type="button" onclick="addRow('gl')">+ Add GL Row</button></div>
+        </div>
+      </section>
+
+      <!-- ================= Repayment Apportionment ================= -->
+      <section class="module" id="mod-repay">
+        <button class="module-head" type="button" aria-expanded="false" onclick="toggleModule(this)">
+          <span class="toggle" aria-hidden="true">+</span>
+          <span><h2>11. Repayment Apportionment</h2><span class="desc">Order in which a repayment is split across dues, by account status</span></span>
+        </button>
+        <div class="module-body">
+          <p class="intro">Each repayment is applied to dues in priority order, with 1 settled first. Set the order separately for each account status and add rows as needed.</p>
+
+          <div class="submodule" data-app="repay.std">
+            <div class="sub-head">
+              <div><h3>11.1 Standard Customers</h3><p>Accounts that are current or delinquent but not hard-blocked or NPA.</p></div>
+              <div class="applic" data-applic="repay.std"></div>
+            </div>
+            <div class="sub-body" data-show-when="repay.std=yes" hidden>
+              <table id="repayStdTable" class="repay"><thead><tr><th style="width:110px">Priority</th><th>Billed / Unbilled</th><th>Repayment Category</th><th class="col-action no-print"></th></tr></thead><tbody></tbody></table>
+              <div class="inline-actions"><button class="ghost mini" type="button" onclick="addRow('repayStd')">+ Add Line Item</button></div>
+            </div>
+          </div>
+
+          <div class="submodule" data-app="repay.hard">
+            <div class="sub-head">
+              <div><h3>11.2 Hard Block</h3><p>Accounts in hard block status.</p></div>
+              <div class="applic" data-applic="repay.hard"></div>
+            </div>
+            <div class="sub-body" data-show-when="repay.hard=yes" hidden>
+              <table id="repayHardTable" class="repay"><thead><tr><th style="width:110px">Priority</th><th>Billed / Unbilled</th><th>Repayment Category</th><th class="col-action no-print"></th></tr></thead><tbody></tbody></table>
+              <div class="inline-actions"><button class="ghost mini" type="button" onclick="addRow('repayHard')">+ Add Line Item</button></div>
+            </div>
+          </div>
+
+          <div class="submodule" data-app="repay.npa">
+            <div class="sub-head">
+              <div><h3>11.3 NPA</h3><p>Accounts classified as NPA.</p></div>
+              <div class="applic" data-applic="repay.npa"></div>
+            </div>
+            <div class="sub-body" data-show-when="repay.npa=yes" hidden>
+              <table id="repayNpaTable" class="repay"><thead><tr><th style="width:110px">Priority</th><th>Billed / Unbilled</th><th>Repayment Category</th><th class="col-action no-print"></th></tr></thead><tbody></tbody></table>
+              <div class="inline-actions"><button class="ghost mini" type="button" onclick="addRow('repayNpa')">+ Add Line Item</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= Sign-off ================= -->
+      <h2>12. Bank / Partner Confirmation</h2>
+      <div class="field"><label for="remarks">Remarks</label><textarea id="remarks" data-key="signoff.remarks" placeholder="Enter remarks, deviations, pending confirmations or approvals"></textarea></div>
+      <div class="meta-grid" style="margin-top:14px">
+        <div class="field"><label for="s-name">Approver Name</label><input id="s-name" data-key="signoff.name"></div>
+        <div class="field"><label for="s-desig">Designation</label><input id="s-desig" data-key="signoff.designation"></div>
+        <div class="field"><label for="s-date">Approval Date</label><input id="s-date" type="date" data-key="signoff.date"></div>
+        <div class="field"><label for="s-status">Status</label>
+          <select id="s-status" data-key="signoff.status"><option>Pending</option><option>Approved</option><option>Approved with Comments</option><option>Rejected</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>© Vegapay Technologies Private Limited</span>
+      <span>Do not reproduce without permission</span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- Defaults ---------------- */
+const DEFAULT_PRODUCT = [
+  ["Product Type","Credit Line"],
+  ["Asset Class","Credit Cards"],
+  ["Asset Type","Unsecured"],
+  ["Collateral","None"],
+  ["Credit Line Limit","Min: 1,000 | Max: 60,000"],
+  ["Account Validity","3 Years | Auto Renew"],
+  ["KYC Type","Full KYC"],
+  ["KYC Validity","As per Risk Categorization Policy of Bank"],
+  ["Eligible Customers","As per BRE Policy"],
+  ["Age Criteria","18 - 59 Years"],
+  ["Loan Module","Yes"],
+  ["TPAP Participation","Supported"]
+];
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+const CHARGES = [
+  {id:"joining",     name:"Joining Fee",           types:["flat"]},
+  {id:"annual",      name:"Annual Fee",            types:["flat"]},
+  {id:"issuance",    name:"Issuance Fee",          types:["flat"]},
+  {id:"closure",     name:"Account Closure Fee",   types:["flat"]},
+  {id:"bounce",      name:"Bounce Fee",            types:["flat"]},
+  {id:"emiForeclosure", name:"EMI Foreclosure Fee",  types:["flat","pct"], base:"of loan amount"},
+  {id:"emiCancel",   name:"EMI Cancellation Fee",  types:["flat","pct"], base:"of loan amount"},
+  {id:"processing",  name:"Processing Fee",        types:["flat","pct"], base:"of loan amount"},
+  {id:"convenience", name:"Convenience Fee",       types:["flat","pct"], base:"of total spends"},
+  {id:"late",        name:"Late Payment Charges",  types:["flat","pct","slab"], base:"of due amount"},
+  {id:"finance",     name:"Finance Charge",        types:["pct"], base:"of the spend", desc:true}
+];
+const TYPE_LABEL = {flat:"Flat", pct:"Percentage", slab:"Slab"};
+const TENURES = [3,6,9,12,18,24];
+const REPAY_CATEGORIES = ["TAX","NON_CASH_CHARGES","TCS","EMI_INTEREST","EMI_PRINCIPAL","NON_CASH_PRINCIPAL"];
+const REPAY_DEFAULT = ()=>[{priority:"",bucket:"",category:""}];
+const REPAY_COLS = [{k:"priority",ph:"Priority",opts:list=>Array.from({length:Math.max(12,list.length)},(_,i)=>String(i+1))},{k:"bucket",ph:"Billed / Unbilled",opts:["Billed","Unbilled"]},{k:"category",ph:"Repayment category",opts:REPAY_CATEGORIES}];
+const nextPriority = list=>({priority:String(list.reduce((m,r)=>Math.max(m,+r.priority||0),0)+1),bucket:"",category:""});
+const DELQ = [
+  {id:"b1", dpd:"1 – 30",  action:"Soft Block", opts:[["txn","User-initiated transactions applicable"]]},
+  {id:"b2", dpd:"31 – 60", action:"Soft Block", opts:[["txn","User-initiated transactions applicable"]]},
+  {id:"b3", dpd:"61 – 90", action:"Hard Block", opts:[["liquidation","Loan liquidation applicable"],["charges","Charges to be levied"]]},
+  {id:"b4", dpd:"91+",     action:"NPA",        opts:[["suspense","Suspense GL movement applicable"],["charges","Charges to be levied"]]}
+];
+const EMAILS = ["Bill Email","Bill PDF","Loan Closure Letter","Loan Closure Notification","Transaction Successful Email Notification","Transaction Reversal Email Notification","Transaction Decline Email Notification","Account Closure Notification","Account Closure Letter","Loan Amortization Notification","Loan Amortization Letter"];
+const GL_EVENTS = [
+  "Transaction Settlement","Customer Principal Receivable","Repayment Pool (PG)","EMI Principal Receivable",
+  "Interest / Finance Charge Income","EMI Interest Income","Late Payment Fee Income","Joining Fee Income","Annual Fee Income","Issuance Fee Income",
+  "Account Closure Fee Income","Bounce Fee Income","EMI Processing Fee Income","EMI Foreclosure Fee Income","EMI Cancellation Fee Income",
+  "Convenience Fee Income","CGST Payable (Output)","SGST Payable (Output)","IGST Payable (Output)","CGST Receivable (Input)","SGST Receivable (Input)",
+  "IGST Receivable (Input)","Chargeback / Dispute","Refund / Transaction Reversal","Excess Payment / Credit Balance","Interchange Income",
+  "Interchange Expense","Switching Fee","Interest Suspense (NPA)","Fee Suspense (NPA)","Write-off / Charge-off","Recovery after Write-off"
+];
+
+/* Editable row lists: each renders into a tbody and is stored in state.lists[name] */
+const LISTS = {
+  product:  {sel:"#productTable tbody", cols:[{k:"param",ph:"Parameter",cls:"param"},{k:"value",ph:"Value"}],
+             defaults:()=>DEFAULT_PRODUCT.map(r=>({param:r[0],value:r[1]}))},
+  lateSlabs:{sel:"#slabTable tbody", cols:[{k:"from",ph:"From",num:1},{k:"to",ph:"and above",num:1},{k:"fee",ph:"Fee",num:1}],
+             defaults:()=>[{from:"1",to:"200",fee:"50"},{from:"201",to:"1000",fee:"100"}], after:checkSlabs,
+             blank:list=>{ const last=list[list.length-1]; return {from: last&&last.to!=="" ? String(+last.to+1) : "", to:"", fee:""}; }},
+  sms:      {sel:"#smsTable tbody", cols:[{k:"id",ph:"e.g. 1107XXXXXXXXXX"},{k:"content",ph:"Dear {#var#}, your bill of Rs {#var#} is generated…",ta:1},{k:"vars",ph:"var1 = Customer name, var2 = Bill amount",ta:1}],
+             defaults:()=>[{id:"",content:"",vars:""}]},
+  gl:       {sel:"#glTable tbody", cols:[{k:"event",ph:"Accounting event",cls:"param"},{k:"code",ph:"GL code"},{k:"asset",ph:"Asset class",dl:"assetClassList"}],
+             defaults:()=>GL_EVENTS.map(e=>({event:e,code:"",asset:""}))},
+  cohorts:  {sel:"#cohortGrid", card:1, cols:[{k:"name",ph:"e.g. CF1 / cat_a",label:"Cohort name",cls:"name"},{k:"pf",ph:"e.g. 1% of loan",label:"Processing fee"},
+             {k:"cf",ph:"e.g. 1.5% of spends",label:"Convenience fee"},{k:"roi",ph:"e.g. 36% p.a.",label:"ROI"},{k:"fc",ph:"e.g. 3% of outstanding",label:"Foreclosure fee"}],
+             defaults:()=>[{name:"",pf:"",cf:"",roi:"",fc:""}]},
+  repayStd: {sel:"#repayStdTable tbody",  cols:REPAY_COLS, defaults:REPAY_DEFAULT, blank:nextPriority},
+  repayHard:{sel:"#repayHardTable tbody", cols:REPAY_COLS, defaults:REPAY_DEFAULT, blank:nextPriority},
+  repayNpa: {sel:"#repayNpaTable tbody",  cols:REPAY_COLS, defaults:REPAY_DEFAULT, blank:nextPriority}
+};
+
+let state = { docId:"template", savedAt:0, fields:{}, lists:Object.fromEntries(Object.entries(LISTS).map(([k,v])=>[k,v.defaults()])), billDates:[1] };
+
+/* ---------------- Helpers ---------------- */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const f = k => state.fields[k];
+function ord(n){ const s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+function dim(y,m){ return new Date(y,m+1,0).getDate(); }
+function billDateIn(y,m,d){ const dt=new Date(y,m,1); const Y=dt.getFullYear(), M=dt.getMonth(); return new Date(Y,M, d==="ME"?dim(Y,M):Math.min(d,dim(Y,M))); }
+function addDays(dt,n){ const r=new Date(dt); r.setDate(r.getDate()+n); return r; }
+function diffDays(a,b){ return Math.round((b-a)/864e5); }
+function fmt(dt){ return String(dt.getDate()).padStart(2,"0")+" "+MONTHS[dt.getMonth()]+" "+dt.getFullYear(); }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function storageKey(){ return "vegapay-product-construct:"+state.docId; }
+
+/* ---------------- Field state ---------------- */
+function collect(){
+  const out={};
+  $$("[data-key]").forEach(el=>{
+    const k=el.dataset.key;
+    if(el.type==="checkbox") out[k]=el.checked;
+    else if(el.type==="radio"){ if(el.checked) out[k]=el.value; else if(!(k in out)) out[k]=""; }
+    else if(el.isContentEditable) out[k]=el.textContent;
+    else out[k]=el.value;
+  });
+  state.fields=out;
+}
+function applyFields(){
+  const fl=state.fields;
+  $$("[data-key]").forEach(el=>{
+    const k=el.dataset.key; if(!(k in fl)) return;
+    if(el.type==="checkbox") el.checked=!!fl[k];
+    else if(el.type==="radio") el.checked=(fl[k]===el.value);
+    else if(el.isContentEditable) el.textContent=fl[k];
+    else el.value=fl[k];
+  });
+}
+
+/* ---------------- Editable row lists ---------------- */
+function renderList(name){
+  const def=LISTS[name], tb=$(def.sel); if(!tb) return;
+  const list=state.lists[name]; tb.innerHTML="";
+  list.forEach((row,i)=>{
+    // Table lists render one <tr> per row; card lists (cohorts) render one card per row
+    const wrap=document.createElement(def.card?"div":"tr"); if(def.card) wrap.className="cohort";
+    def.cols.forEach(c=>{
+      const cell=document.createElement(def.card?"div":"td");
+      if(def.card){ cell.className="field"; const l=document.createElement("label"); l.textContent=c.label; cell.appendChild(l); }
+      else if(c.cls) cell.className=c.cls;
+      const el=document.createElement(c.opts?"select":c.ta?"textarea":"input");
+      if(c.opts){ el.add(new Option("Select…","")); (typeof c.opts==="function"?c.opts(list):c.opts).forEach(o=>el.add(new Option(o,o))); }
+      else { el.placeholder=c.ph; if(c.num){ el.type="number"; el.min="0"; } if(c.dl) el.setAttribute("list",c.dl); }
+      if(def.card&&c.cls) el.className=c.cls;
+      el.value=row[c.k]??""; el.setAttribute("aria-label",c.label||c.ph);
+      el.oninput=el.onchange=()=>{ row[c.k]=el.value; if(def.after) def.after(); save(); };
+      cell.appendChild(el); wrap.appendChild(cell);
+    });
+    const b=document.createElement("button"); b.type="button"; b.className="danger mini"; b.textContent=def.card?"Remove cohort":"×"; b.title="Remove"; b.setAttribute("aria-label","Remove row "+(i+1));
+    b.onclick=()=>{ list.splice(i,1); renderList(name); save(); };
+    if(def.card){ b.classList.add("no-print"); b.style.marginTop="10px"; wrap.appendChild(b); }
+    else { const td=document.createElement("td"); td.className="col-action no-print"; td.appendChild(b); wrap.appendChild(td); }
+    tb.appendChild(wrap);
+  });
+  if(def.after) def.after();
+}
+function addRow(name){
+  const def=LISTS[name], list=state.lists[name];
+  list.push(def.blank ? def.blank(list) : Object.fromEntries(def.cols.map(c=>[c.k,""])));
+  renderList(name); save();
+  const last=$(def.sel).lastElementChild, el=last&&last.querySelector("input, textarea, select"); if(el) el.focus();
+}
+function checkSlabs(){
+  const w=$("#slabWarn"); if(!w) return;
+  const s=state.lists.lateSlabs, issues=[];
+  s.forEach((r,i)=>{
+    const from=+r.from, to=r.to===""?Infinity:+r.to;
+    if(r.from!==""&&r.to!==""&&to<from) issues.push(`Row ${i+1}: "Upto" is lower than "From".`);
+    if(i>0){ const p=s[i-1]; if(p.to===""&&i>0) issues.push(`Row ${i}: only the last slab can be open-ended.`);
+      else if(r.from!==""&&p.to!==""&&from!==+p.to+1) issues.push(`Row ${i+1} should start at ${+p.to+1} to follow on from row ${i}.`); }
+  });
+  w.hidden=!issues.length; w.textContent=issues.join(" ");
+}
+
+/* ---------------- Builders for modules 5–10 ---------------- */
+function pills(key,label){
+  return `<label class="yes"><input type="radio" name="${key}" data-key="${key}" value="yes">Applicable</label>`+
+         `<label class="no"><input type="radio" name="${key}" data-key="${key}" value="no">Not applicable</label>`;
+}
+function yn(key,label){
+  return `<div class="seg seg-sm" role="radiogroup" aria-label="${esc(label)}"><label><input type="radio" name="${key}" data-key="${key}" value="yes">Yes</label><label><input type="radio" name="${key}" data-key="${key}" value="no">No</label></div>`;
+}
+function renderCharges(){
+  $("#chargeList").innerHTML=CHARGES.map((c,n)=>{
+    const k="charge."+c.id;
+    const allowed=c.types.map(t=>t==="pct"?`Percentage ${c.base}`:t==="slab"?`Slab on ${c.base.replace("of ","")}`:"Flat").join(" / ");
+    const typeSeg=`<div class="seg seg-sm" role="radiogroup" aria-label="${c.name} calculation">`+c.types.map((t,i)=>
+      `<label><input type="radio" name="${k}.type" data-key="${k}.type" value="${t}"${i===0?" checked":""}>${TYPE_LABEL[t]}</label>`).join("")+`</div>`;
+    let body=`<div class="label-sm">Calculation</div>${typeSeg}<div class="field-row">`;
+    if(c.types.includes("flat")) body+=`<div class="field" data-show-when="${k}.type=flat"><label>Amount</label><div class="affix"><span class="pre">₹</span><input type="number" min="0" step="0.01" data-key="${k}.flat"></div></div>`;
+    if(c.types.includes("pct"))  body+=`<div class="field" data-show-when="${k}.type=pct"><label>Percentage</label><div class="affix"><input type="number" min="0" step="0.01" data-key="${k}.pct"><span>% ${c.base}</span></div></div>`;
+    body+=`<div class="field"><label>GST</label><select data-key="${k}.gst"><option>Plus GST</option><option>Inclusive of GST</option><option>GST not applicable</option></select></div>`;
+    body+=`<div class="field" style="flex:none"><label>OTB treatment</label><div class="seg seg-sm" role="radiogroup" aria-label="${c.name} OTB treatment">`+
+      `<label><input type="radio" name="${k}.otb" data-key="${k}.otb" value="within">Within OTB</label>`+
+      `<label><input type="radio" name="${k}.otb" data-key="${k}.otb" value="outside">Outside OTB</label></div></div>`;
+    if(!c.desc) body+=`<div class="field grow"><label>Conditions / notes</label><input data-key="${k}.notes" placeholder="e.g. Charged once per billing cycle"></div>`;
+    body+=`</div>`;
+    if(c.types.includes("slab")) body+=`<div data-show-when="${k}.type=slab"><div class="label-sm">Slabs based on due amount (₹)</div>
+      <table id="slabTable"><thead><tr><th>Due Amount From</th><th>Due Amount Upto</th><th>Late Fee (₹)</th><th class="col-action no-print"></th></tr></thead><tbody></tbody></table>
+      <div class="warn" id="slabWarn" hidden></div>
+      <div class="inline-actions"><button class="ghost mini" type="button" onclick="addRow('lateSlabs')">+ Add Slab</button></div>
+      <p class="small" style="font-size:12px;color:var(--muted);margin:0">Leave "Upto" blank on the last slab for "and above".</p></div>`;
+    if(c.desc) body+=`<div class="field" style="margin-top:12px"><label>Finance charge details</label><textarea data-key="${k}.desc" placeholder="e.g. Charged on revolving spends not paid by the due date, calculated daily from transaction date, waived if total due is paid in full"></textarea></div>`;
+    return `<div class="submodule" data-app="${k}.app">
+      <div class="sub-head"><div><h3>5.${n+1} ${c.name}</h3><div class="types">Allowed: ${allowed}</div></div>
+        <div class="applic" role="radiogroup" aria-label="${c.name} applicability">${pills(k+".app")}</div></div>
+      <div class="sub-body" data-show-when="${k}.app=yes" hidden>${body}</div></div>`;
+  }).join("");
+}
+function renderStatic(){
+  $$("[data-applic]").forEach(el=>{ el.setAttribute("role","radiogroup"); el.innerHTML=pills(el.dataset.applic); });
+  $$("[data-tenure]").forEach(el=>{
+    const p=el.dataset.tenure;
+    el.innerHTML=TENURES.map(t=>`<label class="chip"><input type="checkbox" data-key="${p}.${t}">${t}</label>`).join("")+
+      `<input class="other" data-key="${p}.other" placeholder="Other, e.g. 36 months" aria-label="Other tenure">`;
+  });
+  $("#delqTable tbody").innerHTML=DELQ.map(b=>{
+    const k="delq."+b.id;
+    return `<tr><td class="dpd">DPD ${b.dpd}</td><td><input data-key="${k}.action" value="${esc(b.action)}" aria-label="Action at DPD ${b.dpd}"></td>
+      <td><div class="opts">${b.opts.map(([o,l])=>`<div class="opt"><span>${l}</span>${yn(`${k}.${o}`,l)}</div>`).join("")}</div></td>
+      <td><textarea data-key="${k}.notes" aria-label="Notes for DPD ${b.dpd}" placeholder="Notes"></textarea></td></tr>`;
+  }).join("");
+  $("#emailTable tbody").innerHTML=EMAILS.map((e,i)=>{
+    const k="comm.email."+(i+1);
+    return `<tr><td><input data-key="${k}.name" value="${esc(e)}" aria-label="Template name"></td><td>${yn(k+".app",e+" applicable")}</td>
+      <td><select data-key="${k}.status" data-show-when="${k}.app=yes" aria-label="${esc(e)} status"><option>Pending</option><option>Shared</option></select></td></tr>`;
+  }).join("");
+}
+
+/* ---------------- Modules & applicability ---------------- */
+function toggleModule(btn, force){
+  const mod=btn.closest(".module");
+  const open = force===undefined ? !mod.classList.contains("open") : force;
+  mod.classList.toggle("open",open);
+  btn.setAttribute("aria-expanded",open);
+  $("#expandBtn").textContent = $$(".module:not(.open)").length ? "Expand all" : "Collapse all";
+}
+function expandAll(){
+  const open=$$(".module:not(.open)").length>0;
+  $$(".module-head").forEach(h=>toggleModule(h,open));
+}
+function refreshVisibility(){
+  $$("[data-show-when]").forEach(el=>{
+    const [k,v]=el.dataset.showWhen.split("=");
+    el.hidden = f(k)!==v;
+  });
+  $$("[data-app]").forEach(el=>{
+    const v=f(el.dataset.app);
+    el.classList.toggle("is-yes",v==="yes");
+    el.classList.toggle("is-no",v==="no");
+  });
+  const decided=CHARGES.filter(c=>f(`charge.${c.id}.app`)).length;
+  const applicable=CHARGES.filter(c=>f(`charge.${c.id}.app`)==="yes").length;
+  $("#chargeCount").textContent = decided ? `${applicable} applicable · ${CHARGES.length-decided} to confirm` : "";
+  const parts=[f("meta.bank"),f("meta.partner"),f("meta.program")].filter(Boolean);
+  const title=(parts.length?parts.join(" | ")+" | ":"")+"Product Construct";
+  $("#docTitle").textContent=title; $("#barTitle").textContent=title; document.title=title;
+}
+
+/* ---------------- Billing date picker ---------------- */
+function mode(){ return f("bill.cycleType")||"single"; }
+function setMode(m){
+  const r=$(`input[name="bill.cycleType"][value="${m}"]`); if(r) r.checked=true;
+  collect();
+}
+function buildDayGrid(){
+  const g=$("#dayGrid"); g.innerHTML="";
+  for(let d=1; d<=31; d++){
+    const b=document.createElement("button"); b.type="button"; b.textContent=d; b.dataset.day=d;
+    if(d>=29){ b.classList.add("late"); b.title="In months with fewer days, the bill date falls on the last day of the month"; }
+    b.onclick=()=>pickDay(d);
+    g.appendChild(b);
+  }
+}
+function refreshPicker(){
+  const m=mode(), dates=state.billDates;
+  $$("#dayGrid button").forEach(b=>{
+    const on = m!=="monthend" && dates.includes(+b.dataset.day);
+    b.classList.toggle("sel",on); b.setAttribute("aria-pressed",on);
+  });
+  $("#optMonthEnd").classList.toggle("sel",m==="monthend");
+  $("#optMultiple").classList.toggle("sel",m==="multiple");
+  $("#pickerHint").textContent = m==="multiple" ? "Multiple dates: tap days to add or remove them, then press Done." : m==="monthend" ? "Bills are generated on the last day of every month." : "Pick one day of the month.";
+  let label;
+  if(m==="monthend") label="Month End (last day of every month)";
+  else if(!dates.length) label="Select date";
+  else if(m==="single") label=ord(dates[0])+" of every month";
+  else label=dates.map(ord).join(", ")+" of every month";
+  $("#pickerLabel").textContent=label;
+}
+function pickDay(d){
+  if(mode()==="multiple"){
+    const i=state.billDates.indexOf(d);
+    if(i>=0) state.billDates.splice(i,1); else state.billDates.push(d);
+    state.billDates.sort((a,b)=>a-b);
+  }else{
+    setMode("single"); state.billDates=[d]; closePicker();
+  }
+  save(); update();
+}
+function pickMonthEnd(){ setMode("monthend"); closePicker(); save(); update(); }
+function pickMultiple(){ setMode("multiple"); save(); update(); }
+function togglePicker(e){ e.stopPropagation(); const p=$("#picker"); if(p.hidden) openPicker(); else closePicker(); }
+function openPicker(){ $("#picker").hidden=false; $("#pickerBtn").setAttribute("aria-expanded","true"); }
+function closePicker(){ $("#picker").hidden=true; $("#pickerBtn").setAttribute("aria-expanded","false"); }
+document.addEventListener("click",e=>{ if(!e.target.closest(".picker-wrap")) closePicker(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closePicker(); });
+
+/* ---------------- Billing calculations ---------------- */
+function billDateList(){
+  const m=mode();
+  if(m==="monthend") return ["ME"];
+  const d=[...new Set(state.billDates)].sort((a,b)=>a-b);
+  return m==="single" ? d.slice(0,1) : d;
+}
+function periods(){
+  const ifp = f("bill.ifp")==="yes" ? Math.max(0,parseInt(f("bill.ifpDays"))||0) : 0;
+  const grace = f("bill.grace")==="yes" ? Math.max(0,parseInt(f("bill.graceDays"))||0) : 0;
+  return {ifp, grace};
+}
+function cycles(){
+  const dates=billDateList(); if(!dates.length) return [];
+  let [y,mo]=(f("bill.illusMonth")||"").split("-").map(Number);
+  if(!y||!mo){ const n=new Date(); y=n.getFullYear(); mo=n.getMonth()+1; }
+  const m=mo-1;
+  const uniq=arr=>{ const seen=new Set(); return arr.filter(d=>{ const t=d.getTime(); if(seen.has(t)) return false; seen.add(t); return true; }).sort((a,b)=>a-b); };
+  const prev=uniq(dates.map(d=>billDateIn(y,m-1,d)));
+  const cur=uniq(dates.map(d=>billDateIn(y,m,d)));
+  const all=uniq([...prev,...cur]);
+  const {ifp,grace}=periods();
+  return cur.map(end=>{
+    const before=all.filter(d=>d<end); const start=addDays(before[before.length-1],1);
+    const pdd=addDays(end,ifp), graceEnd=addDays(pdd,grace), late=addDays(graceEnd,1);
+    return {start,end,days:diffDays(start,end)+1,pdd,graceEnd,late};
+  });
+}
+function renderBilling(){
+  const m=mode(), dates=billDateList(), {ifp,grace}=periods();
+  const hasIfp=f("bill.ifp")==="yes", hasGrace=f("bill.grace")==="yes";
+  const lateOffset=ifp+grace+1;
+
+  // 4.3 cycle text
+  let ct;
+  if(m==="monthend") ct="Bill cycle runs from the <b>1st</b> to the <b>last day</b> of each month. Bill date = last day of the month.";
+  else if(!dates.length) ct='<span style="color:var(--muted)">Select a billing date to derive the bill cycle.</span>';
+  else ct=dates.map((d,i)=>{
+    const prevD = m==="multiple" && dates.length>1 ? dates[(i-1+dates.length)%dates.length] : d;
+    const startTxt = prevD===31 ? "1st" : ord(prevD+1);
+    const wrap = (m!=="multiple"||dates.length===1||i===0) ? " of the previous month" : "";
+    return `Cycle ${dates.length>1?(i+1)+": ":""}<b>${startTxt}</b>${prevD===31?"":wrap} → <b>${ord(d)}</b> (bill date)`;
+  }).join("<br>") + '<br><span style="font-size:12px;color:var(--muted)">Bill cycle start = previous bill date + 1 · Bill cycle end = bill date</span>';
+  $("#cycleText").innerHTML=ct;
+
+  // 4.6 result
+  const cy=cycles();
+  if(!cy.length){
+    $("#lateResult").innerHTML='<span class="big">Select a billing date to calculate the late fee trigger.</span>';
+  }else{
+    const c=cy[0];
+    $("#lateResult").innerHTML=`<div class="big">Late fee is levied on <em>Bill Date + ${lateOffset} day${lateOffset>1?"s":""}</em></div>
+      <div style="margin-top:6px;font-size:14px">e.g. for the bill dated <b>${fmt(c.end)}</b>: Payment due <b>${fmt(c.pdd)}</b>${hasGrace&&grace?`, grace ends <b>${fmt(c.graceEnd)}</b>`:""}, late fee from <b style="color:#c0392b">${fmt(c.late)}</b> (00:00:01).</div>`;
+  }
+  $("#formula").innerHTML=
+    `<code>Payment Due Date = Bill Date + ${hasIfp?ifp:0}</code> ${hasIfp?"(interest-free period)":"(no interest-free period — due on bill date)"}<br>
+     <code>Grace End = Payment Due Date + ${hasGrace?grace:0}</code> ${hasGrace?"(grace period)":"(no grace period)"}<br>
+     <code>Late Fee Date = Grace End + 1 = Bill Date + ${lateOffset}</code>`;
+
+}
+
+/* ---------------- Save / load ---------------- */
+let saveTimer;
+function save(){
+  collect(); state.savedAt=Date.now();
+  try{ localStorage.setItem(storageKey(),JSON.stringify(state)); $("#saveState").textContent="Saved in this browser"; }
+  catch(e){ $("#saveState").textContent="Autosave unavailable — use Download / Export"; }
+  clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ $("#saveState").textContent=""; },2000);
+}
+function update(){ refreshVisibility(); refreshPicker(); renderBilling(); }
+function loadState(s){
+  if(!s||typeof s!=="object") return;
+  state={
+    docId: s.docId||state.docId,
+    savedAt: s.savedAt||0,
+    fields: Object.assign({}, state.fields, s.fields||{}),
+    lists: Object.fromEntries(Object.entries(LISTS).map(([name,def])=>{
+      let src = s.lists && s.lists[name];
+      if(!src && name==="product") src = s.product;            // files saved before lists existed
+      if(!src && name==="cohorts" && s.fields){                 // files saved with 5 fixed cohort boxes
+        const old=[1,2,3,4,5].map(i=>Object.fromEntries(def.cols.map(c=>[c.k, s.fields[`cohort.${i}.${c.k}`]||""]))).filter(r=>Object.values(r).some(Boolean));
+        if(old.length) src=old;
+      }
+      if(!Array.isArray(src)) return [name, state.lists[name]];
+      return [name, src.map(r=>Object.fromEntries(def.cols.map(c=>[c.k, String((r&&r[c.k])??"")])))];
+    })),
+    billDates: Array.isArray(s.billDates) ? s.billDates.map(Number).filter(n=>n>=1&&n<=31) : state.billDates
+  };
+  if((state.fields["about.text"]||"").includes("without building core infrastructure of their own")) state.fields["about.text"]=DEFAULT_ABOUT;
+  applyFields(); Object.keys(LISTS).forEach(renderList); update();
+}
+function download(name, text, type){
+  const blob=new Blob([text],{type});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },0);
+}
+function fileBase(){
+  const parts=[f("meta.bank"),f("meta.partner"),f("meta.program")].filter(Boolean).map(s=>s.trim().replace(/[^\w-]+/g,"_"));
+  return (parts.length?parts.join("_")+"_":"")+"Product_Construct";
+}
+function downloadHTML(){
+  collect(); closePicker();
+  const out=JSON.parse(JSON.stringify(state));
+  if(out.docId==="template") out.docId="doc-"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  out.savedAt=Date.now();
+  const clone=document.documentElement.cloneNode(true);
+  const old=clone.querySelector("#prefill"); if(old) old.remove();
+  const s=document.createElement("script"); s.type="application/json"; s.id="prefill";
+  s.textContent=JSON.stringify(out).replace(/</g,"\\u003c");
+  clone.querySelector("head").appendChild(s);
+  download(fileBase()+".html","<!DOCTYPE html>\n"+clone.outerHTML,"text/html;charset=utf-8");
+}
+function exportJSON(){ collect(); download(fileBase()+".json",JSON.stringify(state,null,2),"application/json"); }
+function importJSON(input){
+  const file=input.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ const s=JSON.parse(r.result); s.docId=state.docId; loadState(s); save(); alert("Configuration imported."); }catch(e){ alert("That file is not a valid configuration JSON."); } input.value=""; };
+  r.readAsText(file);
+}
+function resetForm(){
+  if(!confirm("Reset this form to blank defaults? Your saved values in this browser will be cleared.")) return;
+  try{ localStorage.removeItem(storageKey()); }catch(e){}
+  const id=state.docId;
+  loadState(JSON.parse(JSON.stringify(DEFAULTS))); state.docId=id;
+}
+
+/* ---------------- Init ---------------- */
+buildDayGrid();
+renderCharges();
+renderStatic();
+Object.keys(LISTS).forEach(renderList);
+collect();
+const DEFAULTS=JSON.parse(JSON.stringify(state));
+const DEFAULT_ABOUT=DEFAULTS.fields["about.text"];
+
+let pre=null;
+try{ const el=document.getElementById("prefill"); if(el) pre=JSON.parse(el.textContent); }catch(e){}
+if(pre&&pre.docId) state.docId=pre.docId;
+let local=null;
+try{ local=JSON.parse(localStorage.getItem(storageKey())); }catch(e){}
+const pick = [pre,local].filter(Boolean).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0))[0];
+if(pick) loadState(pick); else update();
+
+document.addEventListener("input",e=>{ if(e.target.closest("[data-key]")){ save(); update(); } });
+document.addEventListener("change",e=>{ if(e.target.closest("[data-key]")){
+  if(e.target.name==="bill.cycleType"){
+    collect();
+    if(e.target.value==="single") state.billDates=state.billDates.slice(0,1).length?state.billDates.slice(0,1):[1];
+    if(e.target.value==="multiple") setTimeout(openPicker,0);
+  }
+  save(); update();
+}});
+window.addEventListener("beforeprint",()=>{ closePicker(); });
+</script>
+</body>
+</html>
